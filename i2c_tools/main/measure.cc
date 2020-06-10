@@ -4,20 +4,6 @@
 #include "driver/i2c.h"
 #include "bme280.h"
 
-int8_t user_i2c_read(uint8_t id, uint8_t reg_addr, uint8_t *data, uint16_t len)
-{
-	return 0;
-}
-
-int8_t user_i2c_write(uint8_t id, uint8_t reg_addr, uint8_t *data, uint16_t len)
-{
-	return 0;
-}
-
-void user_delay_ms(uint32_t period)
-{
-	
-}
 //-----------------------------------------------------------------------------------------------------
 #define I2C_MASTER_TX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
 #define I2C_MASTER_RX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
@@ -40,9 +26,58 @@ static esp_err_t i2c_master_driver_initialize(void)
 	conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
 	conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
 	conf.master.clk_speed = i2c_frequency;
+
     return i2c_param_config(0, &conf);
 }
 
+int8_t user_i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len)
+{
+    esp_err_t espRc;
+
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_WRITE, true);
+    i2c_master_write_byte(cmd, reg_addr, true);
+
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_READ, true);
+
+    if (len > 1) {
+        i2c_master_read(cmd, data, len-1, I2C_MASTER_ACK);
+    }
+    i2c_master_read_byte(cmd, data+len-1, I2C_MASTER_NACK);
+    i2c_master_stop(cmd);
+
+    espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
+    i2c_cmd_link_delete(cmd);
+
+    return (espRc == ESP_OK) ? 0 : -1;
+}
+
+int8_t user_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len)
+{
+    esp_err_t espRc;
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_WRITE, true);
+
+    i2c_master_write_byte(cmd, reg_addr, true);
+    i2c_master_write(cmd, data, len, true);
+    i2c_master_stop(cmd);
+
+    espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
+    i2c_cmd_link_delete(cmd);
+
+    return (espRc == ESP_OK) ? 0 : -1;
+}
+
+void user_delay_ms(uint32_t msek)
+{
+    vTaskDelay(msek/portTICK_PERIOD_MS);
+
+}
 void x()
 {
     i2c_driver_install(i2c_port, I2C_MODE_MASTER, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
@@ -53,7 +88,7 @@ void x()
     i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(i2c_port, cmd, 1000 / portTICK_RATE_MS);
     i2c_cmd_link_delete(cmd);
-i2c_driver_delete(i2c_port);
+    i2c_driver_delete(i2c_port);
     
 }
 
