@@ -23,8 +23,8 @@
 
 static const char *TAG = "cmd_i2ctools";
 
-static gpio_num_t i2c_gpio_sda = 18;
-static gpio_num_t i2c_gpio_scl = 19;
+static gpio_num_t i2c_gpio_sda = 21;
+static gpio_num_t i2c_gpio_scl = 22;
 static uint32_t i2c_frequency = 100000;
 static i2c_port_t i2c_port = I2C_NUM_0;
 
@@ -384,6 +384,19 @@ static int do_i2cdump_cmd(int argc, char **argv)
     return 0;
 }
 
+void read_bme(void);
+
+static int do_bme_cmd(int argc, char **argv)
+{
+    read_bme();
+    return 0;
+}
+
+static int do_sh_cmd(int argc, char **argv)
+{
+    return 0;
+}
+
 static void register_i2cdump(void)
 {
     i2cdump_args.chip_address = arg_int1("c", "chip", "<chip_addr>", "Specify the address of the chip on that bus");
@@ -399,6 +412,33 @@ static void register_i2cdump(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&i2cdump_cmd));
 }
 
+static void register_bme(void)
+{
+    const esp_console_cmd_t cmd = {
+        .command = "bme",
+        .help = "BME280 test",
+        .hint = NULL,
+        .func = &do_bme_cmd,
+        .argtable = NULL
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+}
+
+
+
+static void register_sh(void)
+{
+    const esp_console_cmd_t cmd = {
+        .command = "sh",
+        .help = "SH1106 test",
+        .hint = NULL,
+        .func = &do_sh_cmd,
+        .argtable = NULL
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+}
+
+
 void register_i2ctools(void)
 {
     register_i2cconfig();
@@ -406,4 +446,6 @@ void register_i2ctools(void)
     register_i2cget();
     register_i2cset();
     register_i2cdump();
+    register_bme();
+    register_sh();
 }

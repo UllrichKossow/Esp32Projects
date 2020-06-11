@@ -20,20 +20,25 @@ static i2c_port_t i2c_port = I2C_NUM_0;
 static esp_err_t i2c_master_driver_initialize(void)
 {
     i2c_config_t conf;
-	conf.mode = I2C_MODE_MASTER;
-	conf.sda_io_num = 21;
-	conf.scl_io_num = 22;
-	conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-	conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-	conf.master.clk_speed = i2c_frequency;
+    conf.mode = I2C_MODE_MASTER;
+    conf.sda_io_num = 21;
+    conf.scl_io_num = 22;
+    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.master.clk_speed = i2c_frequency;
 
-    return i2c_param_config(0, &conf);
+    esp_err_t k = i2c_param_config(0, &conf);
+    printf("%s = %i", __FUNCTION__, k);
+    return k;
 }
 
 int8_t user_i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len)
 {
     esp_err_t espRc;
-
+    esp_err_t k;
+    k = i2c_driver_install(i2c_port, I2C_MODE_MASTER, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
+    printf("%s = %i\n", __FUNCTION__, k);
+    i2c_master_driver_initialize();
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 
     i2c_master_start(cmd);
@@ -52,12 +57,16 @@ int8_t user_i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t
     espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
+    i2c_driver_delete(i2c_port);
     return (espRc == ESP_OK) ? 0 : -1;
 }
 
 int8_t user_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len)
 {
     esp_err_t espRc;
+    esp_err_t k;
+    k = i2c_driver_install(i2c_port, I2C_MODE_MASTER, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
+    printf("%s = %i\n", __FUNCTION__, k);    i2c_master_driver_initialize();
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 
     i2c_master_start(cmd);
@@ -70,6 +79,7 @@ int8_t user_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_
     espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
+    i2c_driver_delete(i2c_port);
     return (espRc == ESP_OK) ? 0 : -1;
 }
 
@@ -78,32 +88,10 @@ void user_delay_ms(uint32_t msek)
     vTaskDelay(msek/portTICK_PERIOD_MS);
 
 }
-void x()
-{
-    i2c_driver_install(i2c_port, I2C_MODE_MASTER, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
-    i2c_master_driver_initialize();
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, 0x78 << 1 | WRITE_BIT, ACK_CHECK_EN);
-    i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(i2c_port, cmd, 1000 / portTICK_RATE_MS);
-    i2c_cmd_link_delete(cmd);
-    i2c_driver_delete(i2c_port);
-    
-}
+
 
 //-----------------------------------------------------------------------------------------------------
-void measure(void)
-{
-    struct bme280_dev dev;
-    dev.dev_id = BME280_I2C_ADDR_PRIM;
-    dev.intf = BME280_I2C_INTF;
-    dev.read = user_i2c_read;
-    dev.write = user_i2c_write;
-    dev.delay_ms = user_delay_ms;
-	
-	bme280_init(&dev);
-}
+
 
 /*!
  * @brief This API used to print the sensor temperature, pressure and humidity data.
@@ -194,4 +182,41 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
     }
 
     return rslt;
+}
+
+extern "C" void read_bme(void);
+
+void read_bme()
+{
+    struct bme280_dev dev;
+
+    /* Variable to define the result */
+    int8_t rslt = BME280_OK;
+
+
+    /* Make sure to select BME280_I2C_ADDR_PRIM or BME280_I2C_ADDR_SEC as needed */
+    dev.dev_id = BME280_I2C_ADDR_PRIM;
+
+    dev.intf = BME280_I2C_INTF;
+    dev.read = user_i2c_read;
+    dev.write = user_i2c_write;
+    dev.delay_ms = user_delay_ms;
+
+
+
+
+    /* Initialize the bme280 */
+    rslt = bme280_init(&dev);
+    if (rslt != BME280_OK)
+    {
+        fprintf(stderr, "Failed to initialize the device (code %+d).\n", rslt);
+        exit(1);
+    }
+
+    rslt = stream_sensor_data_forced_mode(&dev);
+    if (rslt != BME280_OK)
+    {
+        fprintf(stderr, "Failed to stream sensor data (code %+d).\n", rslt);
+        exit(1);
+    }
 }
