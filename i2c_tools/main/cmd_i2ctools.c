@@ -392,8 +392,10 @@ static int do_bme_cmd(int argc, char **argv)
     return 0;
 }
 
+void xapp_main(void);
 static int do_sh_cmd(int argc, char **argv)
 {
+    xapp_main();
     return 0;
 }
 

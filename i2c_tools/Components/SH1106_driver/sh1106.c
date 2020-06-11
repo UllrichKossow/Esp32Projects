@@ -208,5 +208,5 @@ void xapp_main(void)
 	vTaskDelay(1000/portTICK_PERIOD_MS);
 	task_sh1106_display_clear(NULL);
     task_sh1106_display_text("Hello!\nMultiline OK!\nAnother line.");
-	xTaskCreate(&task_sh1106_contrast, "ssid1306_contrast", 2048, NULL, 6, NULL);
+    //xTaskCreate(&task_sh1106_contrast, "ssid1306_contrast", 2048, NULL, 6, NULL);
 }
