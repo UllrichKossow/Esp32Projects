@@ -443,6 +443,7 @@ static void register_sh(void)
 
 void register_i2ctools(void)
 {
+    read_bme();
     register_i2cconfig();
     register_i2cdectect();
     register_i2cget();

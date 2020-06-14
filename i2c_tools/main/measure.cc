@@ -1,8 +1,18 @@
+// -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*-
 
 #include <cstdint>
+#include <cmath>
+#include <cstdio>
+#include <string>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+
 
 #include "driver/i2c.h"
 #include "bme280.h"
+
+using namespace std;
 
 //-----------------------------------------------------------------------------------------------------
 #define I2C_MASTER_TX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
@@ -28,7 +38,6 @@ static esp_err_t i2c_master_driver_initialize(void)
     conf.master.clk_speed = i2c_frequency;
 
     esp_err_t k = i2c_param_config(0, &conf);
-    printf("%s = %i", __FUNCTION__, k);
     return k;
 }
 
@@ -37,7 +46,6 @@ int8_t user_i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t
     esp_err_t espRc;
     esp_err_t k;
     k = i2c_driver_install(i2c_port, I2C_MODE_MASTER, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
-    printf("%s = %i\n", __FUNCTION__, k);
     i2c_master_driver_initialize();
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 
@@ -66,7 +74,7 @@ int8_t user_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_
     esp_err_t espRc;
     esp_err_t k;
     k = i2c_driver_install(i2c_port, I2C_MODE_MASTER, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
-    printf("%s = %i\n", __FUNCTION__, k);    i2c_master_driver_initialize();
+    i2c_master_driver_initialize();
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 
     i2c_master_start(cmd);
@@ -86,9 +94,27 @@ int8_t user_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_
 void user_delay_ms(uint32_t msek)
 {
     vTaskDelay(msek/portTICK_PERIOD_MS);
-
 }
 
+extern "C"
+{
+void sh1106_init(void);
+void task_sh1106_display_text(const void *arg_text);
+void task_sh1106_display_clear(void *ignore);
+}
+//-----------------------------------------------------------------------------------------------------
+std::string show_data_string(const bme280_data *comp_data)
+{
+    ostringstream s;
+    s << "T " << fixed << setprecision(3) << comp_data->temperature
+      << endl << "P " << fixed << setprecision(3) << (0.01 * comp_data->pressure)
+      << endl << "P " << fixed << setprecision(3) << (0.01 * comp_data->pressure) / pow(1 - 550/44330.0, 5.255)
+      << endl << "H " << fixed << setprecision(3) << (comp_data->humidity) << "%";
+
+    task_sh1106_display_clear(NULL);
+    task_sh1106_display_text(s.str().c_str());
+    return s.str();
+}
 
 //-----------------------------------------------------------------------------------------------------
 
@@ -98,7 +124,7 @@ void user_delay_ms(uint32_t msek)
  */
 void print_sensor_data(struct bme280_data *comp_data)
 {
-    float temp, press, hum;
+    double temp, press, hum;
 
 #ifdef BME280_FLOAT_ENABLE
     temp = comp_data->temperature;
@@ -115,7 +141,8 @@ void print_sensor_data(struct bme280_data *comp_data)
     hum = 1.0f / 1024.0f * comp_data->humidity;
 #endif
 #endif
-    printf("%0.2lf deg C, %0.2lf hPa, %0.2lf%%\n", temp, press, hum);
+    double press_nn = press/pow(1 - 550/44330.0, 5.255);
+    printf("%0.3lf deg C, %0.3lf / %0.3lf hPa, %0.3lf\n", temp, press, press_nn, hum);
 }
 
 /*!
@@ -179,6 +206,8 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
         }
 
         print_sensor_data(&comp_data);
+        show_data_string(&comp_data);
+        vTaskDelay(3000/portTICK_PERIOD_MS);
     }
 
     return rslt;
@@ -203,8 +232,6 @@ void read_bme()
     dev.delay_ms = user_delay_ms;
 
 
-
-
     /* Initialize the bme280 */
     rslt = bme280_init(&dev);
     if (rslt != BME280_OK)
@@ -213,6 +240,7 @@ void read_bme()
         exit(1);
     }
 
+    sh1106_init();
     rslt = stream_sensor_data_forced_mode(&dev);
     if (rslt != BME280_OK)
     {

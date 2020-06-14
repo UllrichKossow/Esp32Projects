@@ -39,6 +39,8 @@ void sh1106_set_display_start_line(i2c_cmd_handle_t cmd, uint_fast8_t start_line
 }
 
 void sh1106_init() {
+    i2c_master_init();
+
 	esp_err_t espRc;
 
 	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -71,6 +73,7 @@ void sh1106_init() {
 		ESP_LOGE(tag, "OLED configuration failed. code: 0x%.2X", espRc);
 	}
 	i2c_cmd_link_delete(cmd);
+    i2c_driver_delete(I2C_NUM_0);
 }
 
 void task_sh1106_display_pattern(void *ignore) {
@@ -94,7 +97,7 @@ void task_sh1106_display_pattern(void *ignore) {
 
 void task_sh1106_display_clear(void *ignore) {
 	i2c_cmd_handle_t cmd;
-
+    i2c_master_init();
 	uint8_t zero[132];
     memset(zero, 0, 132);
 	for (uint8_t i = 0; i < 8; i++) {
@@ -120,6 +123,7 @@ void task_sh1106_display_clear(void *ignore) {
     i2c_master_stop(cmd);
     i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
+    i2c_driver_delete(I2C_NUM_0);
 }
 
 
@@ -151,7 +155,7 @@ void task_sh1106_contrast(void *ignore) {
 void task_sh1106_display_text(const void *arg_text) {
 	char *text = (char*)arg_text;
 	uint8_t text_len = strlen(text);
-
+    i2c_master_init();
 	i2c_cmd_handle_t cmd;
 
 	uint8_t cur_page = 0;
@@ -196,6 +200,7 @@ void task_sh1106_display_text(const void *arg_text) {
 			i2c_cmd_link_delete(cmd);
 		}
 	}
+    i2c_driver_delete(I2C_NUM_0);
 }
 
 
