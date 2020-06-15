@@ -1,5 +1,5 @@
 idf_component_register(SRCS "i2ctools_example_main.c"
-                            "cmd_i2ctools.c" "measure.cc"
+                            "cmd_i2ctools.c" "measure.cc" "set_time.cc"
                     INCLUDE_DIRS ".")
 
-add_compile_definitions("BME280_FLOAT_ENABLE")
+add_definitions(-DBME280_32BIT_ENABLE)
