@@ -114,14 +114,18 @@ std::string show_data_string(const bme280_data *comp_data)
     setenv("TZ", "UTC", 1);
     tzset();
     localtime_r(&now.tv_sec, &timeinfo);
-    char strftime_buf[64];
-    strftime(strftime_buf, sizeof(strftime_buf), "%T", &timeinfo);
+    char str_time[64];
+    char str_date[64];
+    strftime(str_time, sizeof(str_time), "%T", &timeinfo);
+    strftime(str_date, sizeof(str_time), "%F", &timeinfo);
 
-    s << "T " << fixed << setprecision(3) << comp_data->temperature
-      << endl << "P " << fixed << setprecision(3) << (0.01 * comp_data->pressure)
-      << endl << "P " << fixed << setprecision(3) << (0.01 * comp_data->pressure) / pow(1 - 570/44330.0, 5.255)
-      << endl << "H " << fixed << setprecision(3) << (comp_data->humidity) << "%"
-      << endl << strftime_buf;
+    s << "T " << fixed << setprecision(3) << 0.01 * comp_data->temperature
+      << endl << "P " << fixed << setprecision(3) << 0.01 * comp_data->pressure
+      << endl << "P " << fixed << setprecision(3) << 0.01 * comp_data->pressure / pow(1 - 570/44330.0, 5.255)
+      << endl << "H " << fixed << setprecision(3) << 0.001 * comp_data->humidity
+      << endl
+      << endl << str_date
+      << endl << str_time;
 
     task_sh1106_display_clear(NULL);
     task_sh1106_display_text(s.str().c_str());
@@ -217,7 +221,7 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
             break;
         }
 
-        print_sensor_data(&comp_data);
+        //print_sensor_data(&comp_data);
         show_data_string(&comp_data);
         vTaskDelay(10000/portTICK_PERIOD_MS);
     }
