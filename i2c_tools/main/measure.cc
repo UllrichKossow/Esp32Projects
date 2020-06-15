@@ -151,6 +151,11 @@ void show_date_time()
     strftime(str_date, sizeof(str_time), "%F", &timeinfo);
     sh1106_print_line(5,str_date);
     sh1106_print_line(6,str_time);
+    
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    s << now.tv_sec;
+    sh1106_print_line(7, s.str().c_str());
+    
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -216,7 +221,6 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
         return rslt;
     }
 
-    printf("Temperature, Pressure, Humidity\n");
 
     /*Calculate the minimum delay required between consecutive measurement based upon the sensor enabled
      *  and the oversampling configuration. */

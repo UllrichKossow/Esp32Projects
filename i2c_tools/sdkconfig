@@ -127,6 +127,14 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Example Configuration
 
 #
+# APP Configuration
+#
+# CONFIG_SNTP_TIME_SYNC_METHOD_IMMED is not set
+CONFIG_SNTP_TIME_SYNC_METHOD_SMOOTH=y
+# CONFIG_SNTP_TIME_SYNC_METHOD_CUSTOM is not set
+# end of APP Configuration
+
+#
 # Example Connection Configuration
 #
 CONFIG_EXAMPLE_CONNECT_WIFI=y
