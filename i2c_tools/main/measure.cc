@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cmath>
 #include <cstdio>
+#include <ctime>
 #include <string>
 #include <iostream>
 #include <iomanip>
@@ -106,10 +107,21 @@ void task_sh1106_display_clear(void *ignore);
 std::string show_data_string(const bme280_data *comp_data)
 {
     ostringstream s;
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+
+    struct tm timeinfo;
+    setenv("TZ", "UTC", 1);
+    tzset();
+    localtime_r(&now.tv_sec, &timeinfo);
+    char strftime_buf[64];
+    strftime(strftime_buf, sizeof(strftime_buf), "%T", &timeinfo);
+
     s << "T " << fixed << setprecision(3) << comp_data->temperature
       << endl << "P " << fixed << setprecision(3) << (0.01 * comp_data->pressure)
-      << endl << "P " << fixed << setprecision(3) << (0.01 * comp_data->pressure) / pow(1 - 550/44330.0, 5.255)
-      << endl << "H " << fixed << setprecision(3) << (comp_data->humidity) << "%";
+      << endl << "P " << fixed << setprecision(3) << (0.01 * comp_data->pressure) / pow(1 - 570/44330.0, 5.255)
+      << endl << "H " << fixed << setprecision(3) << (comp_data->humidity) << "%"
+      << endl << strftime_buf;
 
     task_sh1106_display_clear(NULL);
     task_sh1106_display_text(s.str().c_str());
@@ -207,13 +219,14 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
 
         print_sensor_data(&comp_data);
         show_data_string(&comp_data);
-        vTaskDelay(3000/portTICK_PERIOD_MS);
+        vTaskDelay(10000/portTICK_PERIOD_MS);
     }
 
     return rslt;
 }
 
 extern "C" void read_bme(void);
+void sync_time(void);
 
 void read_bme()
 {
@@ -231,6 +244,8 @@ void read_bme()
     dev.write = user_i2c_write;
     dev.delay_ms = user_delay_ms;
 
+
+    sync_time();
 
     /* Initialize the bme280 */
     rslt = bme280_init(&dev);
