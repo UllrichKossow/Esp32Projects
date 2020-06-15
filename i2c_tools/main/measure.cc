@@ -101,6 +101,7 @@ extern "C"
 {
 void sh1106_init(void);
 void task_sh1106_display_text(const void *arg_text);
+void sh1106_print_line(int line, const char *text);
 void task_sh1106_display_clear(void *ignore);
 }
 //-----------------------------------------------------------------------------------------------------
@@ -111,7 +112,7 @@ std::string show_data_string(const bme280_data *comp_data)
     clock_gettime(CLOCK_REALTIME, &now);
 
     struct tm timeinfo;
-    setenv("TZ", "UTC", 1);
+    setenv("TZ", "UTC-2", 1);
     tzset();
     localtime_r(&now.tv_sec, &timeinfo);
     char str_time[64];
@@ -119,17 +120,37 @@ std::string show_data_string(const bme280_data *comp_data)
     strftime(str_time, sizeof(str_time), "%T", &timeinfo);
     strftime(str_date, sizeof(str_time), "%F", &timeinfo);
 
-    s << "T " << fixed << setprecision(3) << 0.01 * comp_data->temperature
-      << endl << "P " << fixed << setprecision(3) << 0.01 * comp_data->pressure
-      << endl << "P " << fixed << setprecision(3) << 0.01 * comp_data->pressure / pow(1 - 570/44330.0, 5.255)
-      << endl << "H " << fixed << setprecision(3) << 0.001 * comp_data->humidity
-      << endl
-      << endl << str_date
-      << endl << str_time;
+    s << "T " << fixed << setprecision(3) << 0.01 * comp_data->temperature;
+    sh1106_print_line(0, s.str().c_str());
+    s.str("");
+    s << "P " << fixed << setprecision(3) << 0.01 * comp_data->pressure;
+    sh1106_print_line(1, s.str().c_str());
+    s.str("");
+    s << "P " << fixed << setprecision(3) << 0.01 * comp_data->pressure / pow(1 - 570/44330.0, 5.255);
+    sh1106_print_line(2, s.str().c_str());
+    s.str("");
+    s << "H " << fixed << setprecision(3) << 0.001 * comp_data->humidity;
+    sh1106_print_line(3, s.str().c_str());
 
-    task_sh1106_display_clear(NULL);
-    task_sh1106_display_text(s.str().c_str());
     return s.str();
+}
+
+void show_date_time()
+{
+    ostringstream s;
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+
+    struct tm timeinfo;
+    setenv("TZ", "UTC-2", 1);
+    tzset();
+    localtime_r(&now.tv_sec, &timeinfo);
+    char str_time[64];
+    char str_date[64];
+    strftime(str_time, sizeof(str_time), "%T", &timeinfo);
+    strftime(str_date, sizeof(str_time), "%F", &timeinfo);
+    sh1106_print_line(5,str_date);
+    sh1106_print_line(6,str_time);
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -202,28 +223,33 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
     req_delay = bme280_cal_meas_delay(&dev->settings);
 
     /* Continuously stream sensor data */
+    int n = 0;
     while (1)
     {
-        /* Set the sensor to forced mode */
-        rslt = bme280_set_sensor_mode(BME280_FORCED_MODE, dev);
-        if (rslt != BME280_OK)
+        if (n++ % 10 == 0)
         {
-            fprintf(stderr, "Failed to set sensor mode (code %+d).", rslt);
-            break;
-        }
+            /* Set the sensor to forced mode */
+            rslt = bme280_set_sensor_mode(BME280_FORCED_MODE, dev);
+            if (rslt != BME280_OK)
+            {
+                fprintf(stderr, "Failed to set sensor mode (code %+d).", rslt);
+                break;
+            }
 
-        /* Wait for the measurement to complete and print data */
-        dev->delay_ms(req_delay);
-        rslt = bme280_get_sensor_data(BME280_ALL, &comp_data, dev);
-        if (rslt != BME280_OK)
-        {
-            fprintf(stderr, "Failed to get sensor data (code %+d).", rslt);
-            break;
-        }
+            /* Wait for the measurement to complete and print data */
+            dev->delay_ms(req_delay);
+            rslt = bme280_get_sensor_data(BME280_ALL, &comp_data, dev);
+            if (rslt != BME280_OK)
+            {
+                fprintf(stderr, "Failed to get sensor data (code %+d).", rslt);
+                break;
+            }
 
-        //print_sensor_data(&comp_data);
-        show_data_string(&comp_data);
-        vTaskDelay(10000/portTICK_PERIOD_MS);
+            //print_sensor_data(&comp_data);
+            show_data_string(&comp_data);
+        }
+        show_date_time();
+        vTaskDelay(1000/portTICK_PERIOD_MS);
     }
 
     return rslt;
@@ -260,6 +286,9 @@ void read_bme()
     }
 
     sh1106_init();
+    task_sh1106_display_clear(NULL);
+
+
     rslt = stream_sensor_data_forced_mode(&dev);
     if (rslt != BME280_OK)
     {

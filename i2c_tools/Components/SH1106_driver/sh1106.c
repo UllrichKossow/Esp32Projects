@@ -33,7 +33,7 @@ void i2c_master_init()
 void sh1106_set_display_start_line(i2c_cmd_handle_t cmd, uint_fast8_t start_line) {
     // REQUIRES:
     //   0 <= start_line <= 63
-    if (start_line >= 0 && start_line <= 63) {
+    if (start_line <= 63) {
         i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_START_LINE | start_line, true);
     }
 }
@@ -95,12 +95,14 @@ void task_sh1106_display_pattern(void *ignore) {
 	}
 }
 
-void task_sh1106_display_clear(void *ignore) {
+void task_sh1106_display_clear(void *ignore)
+{
 	i2c_cmd_handle_t cmd;
     i2c_master_init();
 	uint8_t zero[132];
     memset(zero, 0, 132);
-	for (uint8_t i = 0; i < 8; i++) {
+    for (uint8_t i = 0; i < 8; i++)
+    {
 		cmd = i2c_cmd_link_create();
 		i2c_master_start(cmd);
 		i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
@@ -151,8 +153,46 @@ void task_sh1106_contrast(void *ignore) {
 	vTaskDelete(NULL);
 }
 
+void sh1106_print_line(int line, const char *text)
+{
+    uint8_t text_len = strlen(text);
+    i2c_master_init();
+    i2c_cmd_handle_t cmd;
 
-void task_sh1106_display_text(const void *arg_text) {
+    uint8_t cur_page = line;
+
+    cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
+
+    i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
+    i2c_master_write_byte(cmd, 0x04, true); // reset column
+    i2c_master_write_byte(cmd, 0x10, true);
+    i2c_master_write_byte(cmd, 0xB0 | cur_page, true); // reset page
+
+    i2c_master_stop(cmd);
+    i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
+    i2c_cmd_link_delete(cmd);
+
+    for (uint8_t i = 0; i < text_len && i <= 16; i++)
+    {
+        cmd = i2c_cmd_link_create();
+        i2c_master_start(cmd);
+        i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
+
+        i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_DATA_STREAM, true);
+        i2c_master_write(cmd, font8x8_basic_tr[(uint8_t)text[i]], 8, true);
+
+        i2c_master_stop(cmd);
+        i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
+        i2c_cmd_link_delete(cmd);
+    }
+    i2c_driver_delete(I2C_NUM_0);
+}
+
+
+void task_sh1106_display_text(const void *arg_text)
+{
 	char *text = (char*)arg_text;
 	uint8_t text_len = strlen(text);
     i2c_master_init();
@@ -165,7 +205,7 @@ void task_sh1106_display_text(const void *arg_text) {
 	i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
 
 	i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
-	i2c_master_write_byte(cmd, 0x08, true); // reset column
+    i2c_master_write_byte(cmd, 0x04, true); // reset column
 	i2c_master_write_byte(cmd, 0x10, true);
 	i2c_master_write_byte(cmd, 0xB0 | cur_page, true); // reset page
 
@@ -173,21 +213,25 @@ void task_sh1106_display_text(const void *arg_text) {
 	i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
 	i2c_cmd_link_delete(cmd);
 
-	for (uint8_t i = 0; i < text_len; i++) {
-		if (text[i] == '\n') {
+    for (uint8_t i = 0; i < text_len; i++)
+    {
+        if (text[i] == '\n')
+        {
 			cmd = i2c_cmd_link_create();
 			i2c_master_start(cmd);
 			i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
 
 			i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
-			i2c_master_write_byte(cmd, 0x08, true); // reset column
+            i2c_master_write_byte(cmd, 0x04, true); // reset column
 			i2c_master_write_byte(cmd, 0x10, true);
 			i2c_master_write_byte(cmd, 0xB0 | ++cur_page, true); // increment page
 
 			i2c_master_stop(cmd);
 			i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
 			i2c_cmd_link_delete(cmd);
-		} else {
+        }
+        else
+        {
 			cmd = i2c_cmd_link_create();
 			i2c_master_start(cmd);
 			i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
@@ -215,3 +259,5 @@ void xapp_main(void)
     task_sh1106_display_text("Hello!\nMultiline OK!\nAnother line.");
     //xTaskCreate(&task_sh1106_contrast, "ssid1306_contrast", 2048, NULL, 6, NULL);
 }
+
+
