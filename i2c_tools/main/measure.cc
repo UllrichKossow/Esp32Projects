@@ -9,7 +9,7 @@
 #include <iomanip>
 #include <sstream>
 
-
+#include "esp_log.h"
 #include "driver/i2c.h"
 #include "bme280.h"
 
@@ -24,6 +24,8 @@ using namespace std;
 #define ACK_CHECK_DIS 0x0           /*!< I2C master will not check ack from slave */
 #define ACK_VAL 0x0                 /*!< I2C ack value */
 #define NACK_VAL 0x1                /*!< I2C nack value */
+
+const char *TAG = "measure";
 
 uint32_t i2c_frequency = 100000;
 static i2c_port_t i2c_port = I2C_NUM_0;
@@ -138,22 +140,25 @@ std::string show_data_string(const bme280_data *comp_data)
 void show_date_time()
 {
     ostringstream s;
-    struct timespec now;
-    clock_gettime(CLOCK_REALTIME, &now);
-
+    struct timespec now_rt, now_mo;
+    clock_gettime(CLOCK_REALTIME, &now_rt);
+    clock_gettime(CLOCK_MONOTONIC, &now_mo);
+    //ESP_LOGI(TAG, "t2=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
     struct tm timeinfo;
     setenv("TZ", "UTC-2", 1);
     tzset();
-    localtime_r(&now.tv_sec, &timeinfo);
+    localtime_r(&now_rt.tv_sec, &timeinfo);
     char str_time[64];
     char str_date[64];
     strftime(str_time, sizeof(str_time), "%T", &timeinfo);
     strftime(str_date, sizeof(str_time), "%F", &timeinfo);
-    sh1106_print_line(5,str_date);
-    sh1106_print_line(6,str_time);
+    s << str_time << " " << now_rt.tv_nsec/1000000;
     
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    s << now.tv_sec;
+    sh1106_print_line(5,str_date);
+    sh1106_print_line(6,s.str().c_str());
+    
+    s.str("");
+    s << now_mo.tv_sec << " " << now_mo.tv_nsec/1000000;
     sh1106_print_line(7, s.str().c_str());
     
 }
@@ -252,8 +257,16 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
             //print_sensor_data(&comp_data);
             show_data_string(&comp_data);
         }
+        
+        struct timespec now_rt;
+        clock_gettime(CLOCK_REALTIME, &now_rt);
+        //ESP_LOGI(TAG, "t1=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
+        int ms = now_rt.tv_nsec/1000000;
+        int delay_ms = 1100 - ms;
+        if (delay_ms < 1)
+            delay_ms = 1;
+        vTaskDelay(delay_ms/portTICK_PERIOD_MS);
         show_date_time();
-        vTaskDelay(1000/portTICK_PERIOD_MS);
     }
 
     return rslt;
