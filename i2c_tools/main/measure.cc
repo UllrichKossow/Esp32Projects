@@ -192,6 +192,8 @@ void print_sensor_data(struct bme280_data *comp_data)
     printf("%0.3lf deg C, %0.3lf / %0.3lf hPa, %0.3lf\n", temp, press, press_nn, hum);
 }
 
+
+void do_adjust();
 /*!
  * @brief This API reads the sensor temperature, pressure and humidity data in forced mode.
  */
@@ -235,7 +237,10 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
     int n = 0;
     while (1)
     {
-        if (n++ % 10 == 0)
+        struct timespec now;
+        clock_gettime(CLOCK_REALTIME, &now);
+
+        if ((now.tv_sec % 10 == 0) || (n++ < 10))
         {
             /* Set the sensor to forced mode */
             rslt = bme280_set_sensor_mode(BME280_FORCED_MODE, dev);
@@ -257,7 +262,7 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
             //print_sensor_data(&comp_data);
             show_data_string(&comp_data);
         }
-        
+
         struct timespec now_rt;
         clock_gettime(CLOCK_REALTIME, &now_rt);
         //ESP_LOGI(TAG, "t1=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
@@ -274,6 +279,7 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
 
 extern "C" void read_bme(void);
 void sync_time(void);
+
 
 void read_bme()
 {
@@ -292,7 +298,12 @@ void read_bme()
     dev.delay_ms = user_delay_ms;
 
 
+    sh1106_init();
+    task_sh1106_display_clear(NULL);
+    sh1106_print_line(0, "Sync time...");
+    
     sync_time();
+    task_sh1106_display_clear(NULL);
 
     /* Initialize the bme280 */
     rslt = bme280_init(&dev);
@@ -302,8 +313,6 @@ void read_bme()
         exit(1);
     }
 
-    sh1106_init();
-    task_sh1106_display_clear(NULL);
 
 
     rslt = stream_sensor_data_forced_mode(&dev);

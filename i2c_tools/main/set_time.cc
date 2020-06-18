@@ -21,7 +21,7 @@
 #include "protocol_examples_common.h"
 #include "esp_sntp.h"
 
-static const char *TAG = "example";
+static const char *TAG = "sntp";
 
 /* Variable holding number of times ESP32 restarted since first boot.
  * It is placed into RTC memory using RTC_DATA_ATTR and
@@ -121,7 +121,8 @@ static void obtain_time(void)
     }
     time(&now);
     localtime_r(&now, &timeinfo);
-
+    //sntp_set_sync_interval(60000);
+    ESP_LOGI(TAG, "sntp_get_sync_interval()=%i", sntp_get_sync_interval());
     ESP_ERROR_CHECK( example_disconnect() );
 }
 
@@ -132,12 +133,28 @@ static void initialize_sntp(void)
     sntp_setservername(0, "pool.ntp.org");
     sntp_set_time_sync_notification_cb(time_sync_notification_cb);
 #ifdef CONFIG_SNTP_TIME_SYNC_METHOD_SMOOTH
+    ESP_LOGI(TAG, "We are smooth...");
     sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);
 #endif
     sntp_init();
 }
 
-void sync_time(void)
+void sync_time()
 {
     obtain_time();
+}
+
+void do_adjust()
+{
+    if (sntp_get_sync_mode() == SNTP_SYNC_MODE_SMOOTH) {
+        struct timeval outdelta;
+        while (sntp_get_sync_status() == SNTP_SYNC_STATUS_IN_PROGRESS) {
+            adjtime(NULL, &outdelta);
+            ESP_LOGI(TAG, "Waiting for adjusting time ... outdelta = %li sec: %li ms: %li us",
+                        (long)outdelta.tv_sec,
+                        outdelta.tv_usec/1000,
+                        outdelta.tv_usec%1000);
+            vTaskDelay(2000 / portTICK_PERIOD_MS);
+        }
+    }
 }
