@@ -135,6 +135,13 @@ CONFIG_SNTP_TIME_SYNC_METHOD_SMOOTH=y
 # end of APP Configuration
 
 #
+# UDP Logging
+#
+CONFIG_LOG_UDP_PORT=1337
+CONFIG_LOG_UDP_IP="224.0.0.0"
+# end of UDP Logging
+
+#
 # Example Connection Configuration
 #
 CONFIG_EXAMPLE_CONNECT_WIFI=y

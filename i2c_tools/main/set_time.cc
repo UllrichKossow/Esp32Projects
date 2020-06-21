@@ -41,9 +41,24 @@ void sntp_sync_time(struct timeval *tv)
 }
 #endif
 
+
 void time_sync_notification_cb(struct timeval *tv)
 {
-    ESP_LOGI(TAG, "Notification of a time synchronization event");
+    static timeval last_tv = {0,0};
+    timeval dt;
+    ESP_LOGI(TAG, "%s  tv={%li, %li}", __PRETTY_FUNCTION__, tv->tv_sec, tv->tv_usec);
+
+    if (tv->tv_usec < last_tv.tv_usec)
+    {
+        tv->tv_usec += 1000000;
+        tv->tv_sec -= 1;
+    }
+    dt.tv_sec = tv->tv_sec - last_tv.tv_sec;
+    dt.tv_usec = tv->tv_usec - last_tv.tv_usec;
+
+    ESP_LOGI(TAG, "dt={%li, %li}", dt.tv_sec, dt.tv_usec);
+
+    last_tv = *tv;
 }
 
 void xxapp_main(void)
@@ -121,9 +136,8 @@ static void obtain_time(void)
     }
     time(&now);
     localtime_r(&now, &timeinfo);
-    //sntp_set_sync_interval(60000);
     ESP_LOGI(TAG, "sntp_get_sync_interval()=%i", sntp_get_sync_interval());
-    ESP_ERROR_CHECK( example_disconnect() );
+    //ESP_ERROR_CHECK( example_disconnect() );
 }
 
 static void initialize_sntp(void)
@@ -134,7 +148,8 @@ static void initialize_sntp(void)
     sntp_set_time_sync_notification_cb(time_sync_notification_cb);
 #ifdef CONFIG_SNTP_TIME_SYNC_METHOD_SMOOTH
     ESP_LOGI(TAG, "We are smooth...");
-    sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);
+    sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);    
+    sntp_set_sync_interval(60*60*1000); //1h
 #endif
     sntp_init();
 }

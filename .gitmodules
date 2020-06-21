@@ -1,3 +1,9 @@
 [submodule "i2c_tools/Components/BME280_driver"]
 	path = i2c_tools/Components/BME280_driver
 	url = https://github.com/BoschSensortec/BME280_driver.git
+[submodule "i2c_tools/Components/embedded-esp32-component-udp_logging"]
+	path = i2c_tools/Components/embedded-esp32-component-udp_logging
+	url = https://github.com/MalteJ/embedded-esp32-component-udp_logging.git
+[submodule "i2c_tools/Components/udp_logging"]
+	path = i2c_tools/Components/udp_logging
+	url = https://github.com/MalteJ/embedded-esp32-component-udp_logging.git
