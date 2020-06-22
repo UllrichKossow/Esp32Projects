@@ -37,30 +37,39 @@ RTC_DATA_ATTR static int boot_count = 0;
 
 static void obtain_time(void);
 static void initialize_sntp(void);
+extern "C" void sh1106_print_line(int line, const char *text);
 
-#ifdef CONFIG_SNTP_TIME_SYNC_METHOD_CUSTOM
 void sntp_sync_time(struct timeval *tv)
 {
-   settimeofday(tv, NULL);
    ESP_LOGI(TAG, "Time is synchronized from custom code");
+   if (sntp_get_sync_mode() == SNTP_SYNC_MODE_SMOOTH) {
+    struct timeval outdelta;
+    timeval delta, now;
+    gettimeofday(&now, NULL);
+    if (now.tv_sec < 1000)
+    {
+        settimeofday(tv,NULL);
+        sntp_set_sync_status(SNTP_SYNC_STATUS_COMPLETED);
+        return;
+    }
+    timersub(tv, &now, &delta);
+    adjtime(&delta, &outdelta);
+    ESP_LOGI(TAG, "Adjusting time ... outdelta = %li sec: %li ms: %li us",
+                (long)delta.tv_sec,
+                delta.tv_usec/1000,
+                delta.tv_usec%1000);
+    ostringstream s;
+    s << "dt=" << fixed << setprecision(6) << (delta.tv_sec + (delta.tv_usec/1000000.0)) << " ";
+    sh1106_print_line(7, s.str().c_str());
+ 
+   }
    sntp_set_sync_status(SNTP_SYNC_STATUS_COMPLETED);
 }
-#endif
 
-extern "C" void sh1106_print_line(int line, const char *text);
+
 void time_sync_notification_cb(struct timeval *tv)
 {
-    static timeval last_tv = {0,0};
-
     ESP_LOGI(TAG, "%s  tv={%li, %li}", __PRETTY_FUNCTION__, tv->tv_sec, tv->tv_usec);
-
-    double last_t = last_tv.tv_sec + (last_tv.tv_usec/1000000.0);
-    double t = tv->tv_sec + (tv->tv_usec/1000000.0);
-
-    ostringstream s;
-    s << "dt=" << fixed << setprecision(6) << (t-last_t) << " ";
-    sh1106_print_line(7, s.str().c_str());
-    last_tv = *tv;
 }
 
 void xxapp_main(void)
@@ -148,11 +157,10 @@ static void initialize_sntp(void)
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
     sntp_setservername(0, "pool.ntp.org");
     sntp_set_time_sync_notification_cb(time_sync_notification_cb);
-#ifdef CONFIG_SNTP_TIME_SYNC_METHOD_SMOOTH
+
     ESP_LOGI(TAG, "We are smooth...");
     sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);    
     sntp_set_sync_interval(60*60*1000); //1h
-#endif
     sntp_init();
 }
 
@@ -161,17 +169,3 @@ void sync_time()
     obtain_time();
 }
 
-void do_adjust()
-{
-    if (sntp_get_sync_mode() == SNTP_SYNC_MODE_SMOOTH) {
-        struct timeval outdelta;
-        while (sntp_get_sync_status() == SNTP_SYNC_STATUS_IN_PROGRESS) {
-            adjtime(NULL, &outdelta);
-            ESP_LOGI(TAG, "Waiting for adjusting time ... outdelta = %li sec: %li ms: %li us",
-                        (long)outdelta.tv_sec,
-                        outdelta.tv_usec/1000,
-                        outdelta.tv_usec%1000);
-            vTaskDelay(2000 / portTICK_PERIOD_MS);
-        }
-    }
-}
