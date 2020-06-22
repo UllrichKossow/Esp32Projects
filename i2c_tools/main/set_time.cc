@@ -10,6 +10,7 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include <iomanip>
 #include <sstream>
 
 #include "freertos/FreeRTOS.h"
@@ -50,21 +51,14 @@ extern "C" void sh1106_print_line(int line, const char *text);
 void time_sync_notification_cb(struct timeval *tv)
 {
     static timeval last_tv = {0,0};
-    timeval dt;
+
     ESP_LOGI(TAG, "%s  tv={%li, %li}", __PRETTY_FUNCTION__, tv->tv_sec, tv->tv_usec);
 
-    if (tv->tv_usec < last_tv.tv_usec)
-    {
-        tv->tv_usec += 1000000;
-        tv->tv_sec -= 1;
-    }
-    dt.tv_sec = tv->tv_sec - last_tv.tv_sec;
-    dt.tv_usec = tv->tv_usec - last_tv.tv_usec;
-
-    ESP_LOGI(TAG, "dt={%li, %li}", dt.tv_sec, dt.tv_usec);
+    double last_t = last_tv.tv_sec + (last_tv.tv_usec/1000000.0);
+    double t = tv->tv_sec + (tv->tv_usec/1000000.0);
 
     ostringstream s;
-    s << dt.tv_sec << " " << dt.tv_usec << "  ";
+    s << "dt=" << fixed << setprecision(6) << (t-last_t) << " ";
     sh1106_print_line(7, s.str().c_str());
     last_tv = *tv;
 }
