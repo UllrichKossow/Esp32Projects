@@ -9,6 +9,9 @@
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
+
+#include <sstream>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -20,6 +23,8 @@
 #include "nvs_flash.h"
 #include "protocol_examples_common.h"
 #include "esp_sntp.h"
+
+using namespace std;
 
 static const char *TAG = "sntp";
 
@@ -41,7 +46,7 @@ void sntp_sync_time(struct timeval *tv)
 }
 #endif
 
-
+extern "C" void sh1106_print_line(int line, const char *text);
 void time_sync_notification_cb(struct timeval *tv)
 {
     static timeval last_tv = {0,0};
@@ -58,6 +63,9 @@ void time_sync_notification_cb(struct timeval *tv)
 
     ESP_LOGI(TAG, "dt={%li, %li}", dt.tv_sec, dt.tv_usec);
 
+    ostringstream s;
+    s << dt.tv_sec << " " << dt.tv_usec << "  ";
+    sh1106_print_line(7, s.str().c_str());
     last_tv = *tv;
 }
 
