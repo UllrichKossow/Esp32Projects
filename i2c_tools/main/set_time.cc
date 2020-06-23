@@ -1,3 +1,4 @@
+// -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*- 
 /* LwIP SNTP example
 
    This example code is in the Public Domain (or CC0 licensed, at your option.)
@@ -41,29 +42,44 @@ extern "C" void sh1106_print_line(int line, const char *text);
 
 void sntp_sync_time(struct timeval *tv)
 {
-   ESP_LOGI(TAG, "Time is synchronized from custom code");
-   if (sntp_get_sync_mode() == SNTP_SYNC_MODE_SMOOTH) {
-    struct timeval outdelta;
-    timeval delta, now;
-    gettimeofday(&now, NULL);
-    if (now.tv_sec < 1000)
+    static timeval last_sync;
+    
+    ESP_LOGI(TAG, "Time is synchronized from custom code");
+    if (sntp_get_sync_mode() == SNTP_SYNC_MODE_SMOOTH)
     {
-        settimeofday(tv,NULL);
-        sntp_set_sync_status(SNTP_SYNC_STATUS_COMPLETED);
-        return;
+	struct timeval outdelta;
+	timeval delta, now;
+
+	gettimeofday(&now, NULL);
+	if (now.tv_sec < 1000)
+	{
+	    settimeofday(tv,NULL);
+	    sntp_set_sync_status(SNTP_SYNC_STATUS_COMPLETED);
+	    last_sync = *tv;
+	    return;
+	}
+	
+	timersub(tv, &now, &delta);
+	adjtime(&delta, &outdelta);
+
+	ESP_LOGI(TAG, "Adjusting time ... outdelta = %li sec: %li ms: %li us",
+		 (long)delta.tv_sec,
+		 delta.tv_usec/1000,
+		 delta.tv_usec%1000);
+
+	timeval elapsed;
+	timersub(tv, &last_sync, &elapsed);
+	last_sync = *tv;
+	double adj_sec = delta.tv_sec + delta.tv_usec/1000000.0;
+	double elapsed_sec = elapsed.tv_sec + elapsed.tv_usec/1000000.0;
+	
+	ostringstream s;
+	s << fixed << setprecision(4) << adj_sec << " "
+	  << setprecision(1) << (1000000*adj_sec/elapsed_sec) << " ";
+	sh1106_print_line(7, s.str().c_str());
+	
     }
-    timersub(tv, &now, &delta);
-    adjtime(&delta, &outdelta);
-    ESP_LOGI(TAG, "Adjusting time ... outdelta = %li sec: %li ms: %li us",
-                (long)delta.tv_sec,
-                delta.tv_usec/1000,
-                delta.tv_usec%1000);
-    ostringstream s;
-    s << "dt=" << fixed << setprecision(6) << (delta.tv_sec + (delta.tv_usec/1000000.0)) << " ";
-    sh1106_print_line(7, s.str().c_str());
- 
-   }
-   sntp_set_sync_status(SNTP_SYNC_STATUS_COMPLETED);
+    sntp_set_sync_status(SNTP_SYNC_STATUS_COMPLETED);
 }
 
 
