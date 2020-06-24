@@ -153,13 +153,18 @@ void task_sh1106_contrast(void *ignore) {
 	vTaskDelete(NULL);
 }
 
-void sh1106_print_line(int line, const char *text)
+void sh1106_print_line(int row, const char *text)
 {
     uint8_t text_len = strlen(text);
+    char line[18];
+    strncpy(line, text, 16);
+    while (strlen(line) < 16)
+    	strcat(line, " ");
+    	
     i2c_master_init();
     i2c_cmd_handle_t cmd;
 
-    uint8_t cur_page = line;
+    uint8_t cur_page = row;
 
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
@@ -174,14 +179,14 @@ void sh1106_print_line(int line, const char *text)
     i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
-    for (uint8_t i = 0; i < text_len && i <= 16; i++)
+    for (uint8_t i = 0; i < 16; i++)
     {
         cmd = i2c_cmd_link_create();
         i2c_master_start(cmd);
         i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
 
         i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_DATA_STREAM, true);
-        i2c_master_write(cmd, font8x8_basic_tr[(uint8_t)text[i]], 8, true);
+        i2c_master_write(cmd, font8x8_basic_tr[(uint8_t)line[i]], 8, true);
 
         i2c_master_stop(cmd);
         i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);

@@ -75,7 +75,7 @@ void sntp_sync_time(struct timeval *tv)
 	
 	ostringstream s;
 	s << fixed << setprecision(4) << adj_sec << " "
-	  << setprecision(1) << (1000000*adj_sec/elapsed_sec) << " ";
+	  << setprecision(1) << (1000000*adj_sec/elapsed_sec);
 	sh1106_print_line(7, s.str().c_str());
 	
     }

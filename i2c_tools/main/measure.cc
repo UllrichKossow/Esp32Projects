@@ -152,13 +152,13 @@ void show_date_time()
     char str_date[64];
     strftime(str_time, sizeof(str_time), "%T", &timeinfo);
     strftime(str_date, sizeof(str_time), "%F", &timeinfo);
-    s << str_time << " " << now_rt.tv_nsec/1000000 << "   ";
+    s << str_time << " " << now_rt.tv_nsec/1000000 ;
     
     sh1106_print_line(4,str_date);
     sh1106_print_line(5,s.str().c_str());
     
     s.str("");
-    s << now_mo.tv_sec << " " << now_mo.tv_nsec/1000000 << "  ";
+    s << now_mo.tv_sec << " " << now_mo.tv_nsec/1000000;
     sh1106_print_line(6, s.str().c_str());
     
 }
