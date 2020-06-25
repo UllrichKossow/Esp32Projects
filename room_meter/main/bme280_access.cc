@@ -12,6 +12,7 @@
 #include "esp_log.h"
 #include "driver/i2c.h"
 #include "bme280.h"
+#include "sh1106.h"
 
 using namespace std;
 
@@ -99,13 +100,7 @@ void user_delay_ms(uint32_t msek)
     vTaskDelay(msek/portTICK_PERIOD_MS);
 }
 
-extern "C"
-{
-void sh1106_init(void);
-void task_sh1106_display_text(const void *arg_text);
-void sh1106_print_line(int line, const char *text);
-void task_sh1106_display_clear(void *ignore);
-}
+
 //-----------------------------------------------------------------------------------------------------
 std::string show_data_string(const bme280_data *comp_data)
 {
