@@ -47,37 +47,38 @@ void sntp_sync_time(struct timeval *tv)
     ESP_LOGI(TAG, "Time is synchronized from custom code");
     if (sntp_get_sync_mode() == SNTP_SYNC_MODE_SMOOTH)
     {
-	struct timeval outdelta;
-	timeval delta, now;
+        struct timeval outdelta;
+        timeval delta, now;
 
-	gettimeofday(&now, NULL);
-	if (now.tv_sec < 1000)
-	{
-	    settimeofday(tv,NULL);
-	    sntp_set_sync_status(SNTP_SYNC_STATUS_COMPLETED);
-	    last_sync = *tv;
-	    return;
-	}
-	
-	timersub(tv, &now, &delta);
-	adjtime(&delta, &outdelta);
+        gettimeofday(&now, NULL);
+        if (now.tv_sec < 1000)
+        {
+            settimeofday(tv,NULL);
+            sntp_set_sync_status(SNTP_SYNC_STATUS_COMPLETED);
+            ESP_LOGI(TAG, "Initial settimeofday()");
+            last_sync = *tv;
+            return;
+        }
+        
+        timersub(tv, &now, &delta);
+        adjtime(&delta, &outdelta);
 
-	ESP_LOGI(TAG, "Adjusting time ... outdelta = %li sec: %li ms: %li us",
-		 (long)delta.tv_sec,
-		 delta.tv_usec/1000,
-		 delta.tv_usec%1000);
+        ESP_LOGI(TAG, "Adjusting time ... outdelta = %li sec: %li ms: %li us",
+                 (long)delta.tv_sec,
+                 delta.tv_usec/1000,
+                 delta.tv_usec%1000);
 
-	timeval elapsed;
-	timersub(tv, &last_sync, &elapsed);
-	last_sync = *tv;
-	double adj_sec = delta.tv_sec + delta.tv_usec/1000000.0;
-	double elapsed_sec = elapsed.tv_sec + elapsed.tv_usec/1000000.0;
-	
-	ostringstream s;
-	s << fixed << setprecision(4) << adj_sec << " "
-	  << setprecision(1) << (1000000*adj_sec/elapsed_sec);
-	sh1106_print_line(7, s.str().c_str());
-	
+        timeval elapsed;
+        timersub(tv, &last_sync, &elapsed);
+        last_sync = *tv;
+        double adj_sec = delta.tv_sec + delta.tv_usec/1000000.0;
+        double elapsed_sec = elapsed.tv_sec + elapsed.tv_usec/1000000.0;
+        
+        ostringstream s;
+        s << fixed << setprecision(3) << adj_sec << " "
+          << setprecision(1) << (1000000*adj_sec/elapsed_sec);
+        sh1106_print_line(7, s.str().c_str());
+        
     }
     sntp_set_sync_status(SNTP_SYNC_STATUS_COMPLETED);
 }
