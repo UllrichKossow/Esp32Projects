@@ -208,7 +208,7 @@ void sh1106_print_line(int row, const char *text)
     i2c_driver_delete(I2C_NUM_0);
 }
 
-
+//----------------------------------------------------------------------------------------------------------
 void task_sh1106_display_text(const void *arg_text)
 {
     char *text = (char*)arg_text;
@@ -266,6 +266,34 @@ void task_sh1106_display_text(const void *arg_text)
 }
 
 
+//--------------------------------------------------------------------------------
+typedef uint8_t frame_buffer_t[132][8];
+//--------------------------------------------------------------------------------
 
+//--------------------------------------------------------------------------------
+
+//--------------------------------------------------------------------------------
+void sh1106_set_pixel(frame_buffer_t *fb, uint8_t x, uint8_t y, bool p)
+{
+    if((x > 127) || (y > 63))
+    {
+	ESP_LOGE(tag, "sh1106_set_pixel x/y out of range.");
+	return;
+    }
+    uint8_t page;
+    uint8_t column;
+    uint8_t bit;
+
+    page = y / 8;
+    column = x;
+    bit = y % 8;
+
+    uint8_t v = *fb[column][page];
+    if (p)
+	 v |= 1>>bit;
+    else
+	v &= ~(1>>bit);
+    *fb[column][page] = v;
+}
 
 
