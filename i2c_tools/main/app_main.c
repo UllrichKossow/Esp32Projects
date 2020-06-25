@@ -1,10 +1,9 @@
 
 
-
+#include "bme280_access.h"
 
 static const char *TAG = "BME280";
 
-void read_bme();
 
 void app_main(void)
 {
