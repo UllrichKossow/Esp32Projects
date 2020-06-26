@@ -20,14 +20,14 @@
 
 void i2c_master_init()
 {
-    i2c_config_t i2c_config = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = SDA_PIN,
-        .scl_io_num = SCL_PIN,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = 1000000
-    };
+    i2c_config_t i2c_config;
+    i2c_config.mode = I2C_MODE_MASTER;
+    i2c_config.sda_io_num = SDA_PIN;
+    i2c_config.scl_io_num = SCL_PIN;
+    i2c_config.sda_pullup_en = GPIO_PULLUP_ENABLE;
+    i2c_config.scl_pullup_en = GPIO_PULLUP_ENABLE;
+    i2c_config.master.clk_speed = 1000000;
+    
     i2c_param_config(I2C_NUM_0, &i2c_config);
     i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0);
 }
@@ -282,8 +282,8 @@ void sh1106_set_pixel(frame_buffer_t *fb, uint8_t x, uint8_t y, bool p)
 {
     if((x > 127) || (y > 63))
     {
-	ESP_LOGE(tag, "sh1106_set_pixel x/y out of range.");
-	return;
+        ESP_LOGE(tag, "sh1106_set_pixel x/y out of range.");
+        return;
     }
     uint8_t page;
     uint8_t column;
@@ -295,9 +295,9 @@ void sh1106_set_pixel(frame_buffer_t *fb, uint8_t x, uint8_t y, bool p)
 
     uint8_t v = *fb[column][page];
     if (p)
-	 v |= 1>>bit;
+         v |= 1>>bit;
     else
-	v &= ~(1>>bit);
+        v &= ~(1>>bit);
     *fb[column][page] = v;
 }
 

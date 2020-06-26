@@ -26,6 +26,8 @@
 #include "protocol_examples_common.h"
 #include "esp_sntp.h"
 
+#include "sh1106.h"
+
 using namespace std;
 
 static const char *TAG = "sntp";
@@ -38,7 +40,6 @@ RTC_DATA_ATTR static int boot_count = 0;
 
 static void obtain_time(void);
 static void initialize_sntp(void);
-extern "C" void sh1106_print_line(int line, const char *text);
 
 void sntp_sync_time(struct timeval *tv)
 {
