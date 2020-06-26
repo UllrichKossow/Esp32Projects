@@ -269,9 +269,14 @@ void task_sh1106_display_text(const void *arg_text)
 //--------------------------------------------------------------------------------
 typedef uint8_t frame_buffer_t[132][8];
 //--------------------------------------------------------------------------------
-
+void write_fb(frame_buffer_t *fb)
+{
+}
 //--------------------------------------------------------------------------------
-
+void clear_fb(frame_buffer_t *fb)
+{
+    memset(fb, 0, 8*132);
+}
 //--------------------------------------------------------------------------------
 void sh1106_set_pixel(frame_buffer_t *fb, uint8_t x, uint8_t y, bool p)
 {
@@ -285,7 +290,7 @@ void sh1106_set_pixel(frame_buffer_t *fb, uint8_t x, uint8_t y, bool p)
     uint8_t bit;
 
     page = y / 8;
-    column = x;
+    column = x+4;
     bit = y % 8;
 
     uint8_t v = *fb[column][page];
