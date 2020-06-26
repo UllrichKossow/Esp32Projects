@@ -268,6 +268,31 @@ void task_sh1106_display_text(const void *arg_text)
 
 //--------------------------------------------------------------------------------
 typedef uint8_t frame_buffer_t[132][8];
+
+
+void task_sh1106_write_fb(frame_buffer_t *fb)
+{
+    i2c_cmd_handle_t cmd;
+    
+    for (uint8_t i = 0; i < 8; i++)
+    {
+        cmd = i2c_cmd_link_create();
+        i2c_master_start(cmd);
+        i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
+        i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_SINGLE, true);
+        i2c_master_write_byte(cmd, 0xB0 | i, true);
+        i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_DATA_STREAM, true);
+        for (uint8_t j = 0; j < 132; j++)
+        {
+            i2c_master_write_byte(cmd, *fb[j][i], true);
+        }
+        i2c_master_stop(cmd);
+        i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
+        i2c_cmd_link_delete(cmd);
+    }
+}
+
+
 //--------------------------------------------------------------------------------
 void write_fb(frame_buffer_t *fb)
 {
