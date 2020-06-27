@@ -44,6 +44,7 @@ static void initialize_sntp(void);
 void sntp_sync_time(struct timeval *tv)
 {
     static timeval last_sync;
+    static timeval sum_adj;
     
     ESP_LOGI(TAG, "Time is synchronized from custom code");
     if (sntp_get_sync_mode() == SNTP_SYNC_MODE_SMOOTH)
@@ -58,6 +59,8 @@ void sntp_sync_time(struct timeval *tv)
             sntp_set_sync_status(SNTP_SYNC_STATUS_COMPLETED);
             ESP_LOGI(TAG, "Initial settimeofday()");
             last_sync = *tv;
+	        sum_adj.tv_sec = 0;
+            sum_adj.tv_usec = 0;
             return;
         }
         
@@ -71,13 +74,20 @@ void sntp_sync_time(struct timeval *tv)
 
         timeval elapsed;
         timersub(tv, &last_sync, &elapsed);
+        timeradd (&delta, &sum_adj, &sum_adj);
+        
         last_sync = *tv;
         double adj_sec = delta.tv_sec + delta.tv_usec/1000000.0;
         double elapsed_sec = elapsed.tv_sec + elapsed.tv_usec/1000000.0;
+        double sum_adj_sec = sum_adj.tv_sec + sum_adj.tv_usec/1000000.0;
+        
+        timespec now_mo;
+        clock_gettime(CLOCK_MONOTONIC, &now_mo);
+        double uptime = now_mo.tv_sec + now_mo.tv_nsec/1000000000.0;
         
         ostringstream s;
-        s << fixed << setprecision(3) << adj_sec << " "
-          << setprecision(1) << (1000000*adj_sec/elapsed_sec);
+        //s << fixed << setprecision(3) << adj_sec << " " << setprecision(1) << (1000000*adj_sec/elapsed_sec);
+        s << fixed << setprecision(3) << sum_adj_sec / uptime * 1000000 << " ppm";
         sh1106_print_line(7, s.str().c_str());
         
     }
