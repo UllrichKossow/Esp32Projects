@@ -117,13 +117,13 @@ std::string show_data_string(const bme280_data *comp_data)
     strftime(str_time, sizeof(str_time), "%T", &timeinfo);
     strftime(str_date, sizeof(str_time), "%F", &timeinfo);
 
-    s << "T " << fixed << setprecision(3) << 0.01 * comp_data->temperature;
+    s << "T " << fixed << setprecision(2) << 0.01 * comp_data->temperature;
     sh1106_print_line(0, s.str().c_str());
     s.str("");
-    s << "P " << fixed << setprecision(3) << 0.01 * comp_data->pressure;
+    s << "P " << fixed << setprecision(2) << 0.01 * comp_data->pressure;
     sh1106_print_line(1, s.str().c_str());
     s.str("");
-    s << "P " << fixed << setprecision(3) << 0.01 * comp_data->pressure / pow(1 - 570/44330.0, 5.255);
+    s << "P " << fixed << setprecision(2) << 0.01 * comp_data->pressure / pow(1 - 570/44330.0, 5.255);
     sh1106_print_line(2, s.str().c_str());
     s.str("");
     s << "H " << fixed << setprecision(3) << 0.001 * comp_data->humidity;
@@ -262,7 +262,7 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
         clock_gettime(CLOCK_REALTIME, &now_rt);
         //ESP_LOGI(TAG, "t1=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
         int ms = now_rt.tv_nsec/1000000;
-        int delay_ms = 1100 - ms;
+        int delay_ms = 1050 - ms;
         if (delay_ms < 1)
             delay_ms = 1;
         vTaskDelay(delay_ms/portTICK_PERIOD_MS);
