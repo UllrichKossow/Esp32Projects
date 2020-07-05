@@ -10,6 +10,8 @@
 #include <sstream>
 
 #include "esp_log.h"
+#include "esp_sleep.h"
+#include "esp_wifi.h"
 #include "driver/i2c.h"
 #include "bme280.h"
 #include "sh1106.h"
@@ -261,11 +263,22 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
         struct timespec now_rt;
         clock_gettime(CLOCK_REALTIME, &now_rt);
         //ESP_LOGI(TAG, "t1=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
+#if 1    
         int ms = now_rt.tv_nsec/1000000;
         int delay_ms = 1050 - ms;
         if (delay_ms < 1)
             delay_ms = 1;
         vTaskDelay(delay_ms/portTICK_PERIOD_MS);
+#else
+        int us = now_rt.tv_nsec/1000;
+        int delay_us = 1050000 - us;
+        if (delay_us < 1)
+            delay_us = 1;
+        esp_sleep_enable_timer_wakeup(delay_us);
+        esp_wifi_stop();
+        esp_light_sleep_start();
+        esp_wifi_start();
+#endif    
         show_date_time();
     }
 
@@ -307,8 +320,6 @@ void read_bme()
         fprintf(stderr, "Failed to initialize the device (code %+d).\n", rslt);
         exit(1);
     }
-
-
 
     rslt = stream_sensor_data_forced_mode(&dev);
     if (rslt != BME280_OK)
