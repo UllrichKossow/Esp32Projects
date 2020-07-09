@@ -15,45 +15,21 @@
 #include "driver/i2c.h"
 #include "bme280.h"
 #include "sh1106.h"
+#include "i2c_manager.h"
 
 using namespace std;
 
 //-----------------------------------------------------------------------------------------------------
-#define I2C_MASTER_TX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
-#define I2C_MASTER_RX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
-#define WRITE_BIT I2C_MASTER_WRITE  /*!< I2C master write */
-#define READ_BIT I2C_MASTER_READ    /*!< I2C master read */
-#define ACK_CHECK_EN 0x1            /*!< I2C master will check ack from slave*/
-#define ACK_CHECK_DIS 0x0           /*!< I2C master will not check ack from slave */
-#define ACK_VAL 0x0                 /*!< I2C ack value */
-#define NACK_VAL 0x1                /*!< I2C nack value */
 
-const char *TAG = "measure";
+static const char *TAG = "measure";
 
-uint32_t i2c_frequency = 100000;
-static i2c_port_t i2c_port = I2C_NUM_0;
-
-static esp_err_t i2c_master_driver_initialize(void)
-{
-    i2c_config_t conf;
-    conf.mode = I2C_MODE_MASTER;
-    conf.sda_io_num = 21;
-    conf.scl_io_num = 22;
-    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.master.clk_speed = i2c_frequency;
-
-    esp_err_t k = i2c_param_config(0, &conf);
-    return k;
-}
 
 int8_t user_i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len)
 {
     esp_err_t espRc;
     esp_err_t k;
-    k = i2c_driver_install(i2c_port, I2C_MODE_MASTER, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
-    i2c_master_driver_initialize();
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+
+    i2c_cmd_handle_t cmd = i2c_manager::instance()->GetCmdHandle();
 
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_WRITE, true);
@@ -69,9 +45,8 @@ int8_t user_i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t
     i2c_master_stop(cmd);
 
     espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd);
+    i2c_manager::instance()->ReleaseCmdHandle(cmd);
 
-    i2c_driver_delete(i2c_port);
     return (espRc == ESP_OK) ? 0 : -1;
 }
 
@@ -79,9 +54,7 @@ int8_t user_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_
 {
     esp_err_t espRc;
     esp_err_t k;
-    k = i2c_driver_install(i2c_port, I2C_MODE_MASTER, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
-    i2c_master_driver_initialize();
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_cmd_handle_t cmd = i2c_manager::instance()->GetCmdHandle();
 
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_WRITE, true);
@@ -91,9 +64,9 @@ int8_t user_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_
     i2c_master_stop(cmd);
 
     espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd);
 
-    i2c_driver_delete(i2c_port);
+    i2c_manager::instance()->ReleaseCmdHandle(cmd);
+
     return (espRc == ESP_OK) ? 0 : -1;
 }
 
@@ -155,9 +128,8 @@ void show_date_time()
     sh1106_print_line(5,s.str().c_str());
     
     s.str("");
-    s << now_mo.tv_sec << " " << now_mo.tv_nsec/1000000;
-    sh1106_print_line(6, s.str().c_str());
-    
+    s << now_mo.tv_sec << " " << now_mo.tv_nsec/1000000 << " " << now_mo.tv_sec % 3600;
+    sh1106_print_line(6, s.str().c_str());    
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -235,6 +207,7 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
     while (1)
     {
         struct timespec now;
+
         clock_gettime(CLOCK_REALTIME, &now);
 
         if ((now.tv_sec % 10 == 0) || (n++ < 10))
@@ -262,8 +235,8 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
 
         struct timespec now_rt;
         clock_gettime(CLOCK_REALTIME, &now_rt);
-        //ESP_LOGI(TAG, "t1=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
-#if 1    
+        ESP_LOGI(TAG, "t1=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
+#if 1
         int ms = now_rt.tv_nsec/1000000;
         int delay_ms = 1050 - ms;
         if (delay_ms < 1)
