@@ -203,7 +203,7 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
 
         struct timespec now_rt;
         clock_gettime(CLOCK_REALTIME, &now_rt);
-        ESP_LOGI(TAG, "t1=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
+        //ESP_LOGI(TAG, "t1=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
 #if 1
         int ms = now_rt.tv_nsec/1000000;
         int delay_ms = 1050 - ms;
@@ -226,12 +226,15 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
     return rslt;
 }
 
-extern "C" void read_bme(void);
+
 void sync_time(void);
 
+extern "C" void read_bme(void);
 
 void read_bme()
-{
+{	
+    
+    
     struct bme280_dev dev;
 
     /* Variable to define the result */
@@ -248,12 +251,12 @@ void read_bme()
 
 
     sh1106_init();
-    task_sh1106_display_clear(NULL);
+    sh1106_display_clear();
     sh1106_print_line(0, "Sync time...");
     
     sync_time();
-    task_sh1106_display_clear(NULL);
-
+    sh1106_display_clear();
+    
     /* Initialize the bme280 */
     rslt = bme280_init(&dev);
     if (rslt != BME280_OK)

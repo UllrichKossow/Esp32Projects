@@ -1,5 +1,6 @@
 // -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*-                                          
 
+#include "sh1106.h"
 #include <string.h>
 
 #include "driver/gpio.h"
@@ -14,10 +15,8 @@
 #include "sh1106_def.h"
 #include "font8x8_basic.h"
 
-#define SDA_PIN GPIO_NUM_21
-#define SCL_PIN GPIO_NUM_22
 
-#define tag "SH1106"
+static const char *tag = "SH1106";
 
 
 void sh1106_set_display_start_line(i2c_cmd_handle_t cmd, uint_fast8_t start_line)
@@ -29,6 +28,7 @@ void sh1106_set_display_start_line(i2c_cmd_handle_t cmd, uint_fast8_t start_line
         i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_START_LINE | start_line, true);
     }
 }
+
 
 void sh1106_init()
 {
@@ -69,6 +69,7 @@ void sh1106_init()
     i2c_manager::instance()->ReleaseCmdHandle(cmd);
 }
 
+
 void task_sh1106_display_pattern(void *ignore)
 {
     for (uint8_t i = 0; i < 8; i++)
@@ -89,7 +90,8 @@ void task_sh1106_display_pattern(void *ignore)
     }
 }
 
-void task_sh1106_display_clear(void *ignore)
+
+void sh1106_display_clear()
 {
     uint8_t zero[132];
     memset(zero, 0, 132);
@@ -145,6 +147,7 @@ void task_sh1106_contrast(void *ignore)
     vTaskDelete(NULL);
 }
 
+
 void sh1106_print_line(int row, const char *text)
 {
     uint8_t text_len = strlen(text);
@@ -184,67 +187,10 @@ void sh1106_print_line(int row, const char *text)
     }
 }
 
-//----------------------------------------------------------------------------------------------------------
-void task_sh1106_display_text(const void *arg_text)
-{
-    char *text = (char*)arg_text;
-    uint8_t text_len = strlen(text);
-
-    i2c_cmd_handle_t cmd = i2c_manager::instance()->GetCmdHandle();
-    
-    uint8_t cur_page = 0;    
-
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
-    
-    i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
-    i2c_master_write_byte(cmd, 0x04, true); // reset column
-    i2c_master_write_byte(cmd, 0x10, true);
-    i2c_master_write_byte(cmd, 0xB0 | cur_page, true); // reset page
-    
-    i2c_master_stop(cmd);
-    i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
-    i2c_manager::instance()->ReleaseCmdHandle(cmd);
-    
-    for (uint8_t i = 0; i < text_len; i++)
-    {
-        if (text[i] == '\n')
-        {
-            cmd = i2c_manager::instance()->GetCmdHandle();
-            i2c_master_start(cmd);
-            i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
-            
-            i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
-            i2c_master_write_byte(cmd, 0x04, true); // reset column
-            i2c_master_write_byte(cmd, 0x10, true);
-            i2c_master_write_byte(cmd, 0xB0 | ++cur_page, true); // increment page
-            
-            i2c_master_stop(cmd);
-            i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
-            i2c_manager::instance()->ReleaseCmdHandle(cmd);
-        }
-        else
-        {
-            cmd = i2c_manager::instance()->GetCmdHandle();
-            i2c_master_start(cmd);
-            i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
-            
-            i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_DATA_STREAM, true);
-            i2c_master_write(cmd, font8x8_basic_tr[(uint8_t)text[i]], 8, true);
-            
-            i2c_master_stop(cmd);
-            i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
-            i2c_manager::instance()->ReleaseCmdHandle(cmd);
-        }
-    }
-}
-
 
 //--------------------------------------------------------------------------------
-typedef uint8_t frame_buffer_t[132][8];
 
-
-void task_sh1106_write_fb(frame_buffer_t *fb)
+void sh1106_write_fb(frame_buffer_t *fb)
 {
     for (uint8_t i = 0; i < 8; i++)
     {
@@ -255,8 +201,8 @@ void task_sh1106_write_fb(frame_buffer_t *fb)
         i2c_master_write_byte(cmd, 0xB0 | i, true);
         i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_DATA_STREAM, true);
         for (uint8_t j = 0; j < 132; j++)
-        {
-            i2c_master_write_byte(cmd, *fb[j][i], true);
+        {           
+            i2c_master_write_byte(cmd, (*fb)[j][i], true);
         }
         i2c_master_stop(cmd);
         i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
@@ -266,14 +212,12 @@ void task_sh1106_write_fb(frame_buffer_t *fb)
 
 
 //--------------------------------------------------------------------------------
-void write_fb(frame_buffer_t *fb)
-{
-}
-//--------------------------------------------------------------------------------
-void clear_fb(frame_buffer_t *fb)
+void sh1106_clear_fb(frame_buffer_t *fb)
 {
     memset(fb, 0, 8*132);
 }
+
+
 //--------------------------------------------------------------------------------
 void sh1106_set_pixel(frame_buffer_t *fb, uint8_t x, uint8_t y, bool p)
 {
@@ -289,13 +233,29 @@ void sh1106_set_pixel(frame_buffer_t *fb, uint8_t x, uint8_t y, bool p)
     page = y / 8;
     column = x+4;
     bit = y % 8;
-
-    uint8_t v = *fb[column][page];
+	//ESP_LOGI(tag, "page=%i column=%i bit=%i", page, column, bit);
+	
+    uint8_t v = (*fb)[column][page];
     if (p)
-        v |= 1>>bit;
+        v |= 1<<bit;
     else
-        v &= ~(1>>bit);
-    *fb[column][page] = v;
+        v &= ~(1<<bit);
+        
+    (*fb)[column][page] = v;
 }
 
-
+//--------------------------------------------------------------------------------
+void play_graph()
+{
+    sh1106_display_clear();
+    vTaskDelay(1000/portTICK_PERIOD_MS);
+    frame_buffer_t fb;
+    sh1106_clear_fb(&fb);
+    for (int i = 0; i < 64; ++i)
+    {
+	    sh1106_set_pixel(&fb, i, i, true);
+    }
+    sh1106_write_fb(&fb);
+    vTaskDelay(5000/portTICK_PERIOD_MS);
+    sh1106_display_clear();
+}

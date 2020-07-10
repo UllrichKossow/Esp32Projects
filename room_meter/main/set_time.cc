@@ -1,4 +1,4 @@
-// -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*- 
+            // -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*- 
 /* LwIP SNTP example
 
    This example code is in the Public Domain (or CC0 licensed, at your option.)
@@ -41,6 +41,12 @@ void time_sync_notification_cb(struct timeval *tv)
 static void initialize_sntp(void)
 {
     ESP_LOGI(TAG, "Initializing SNTP");
+    
+	ESP_ERROR_CHECK(nvs_flash_init());
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    ESP_ERROR_CHECK(example_connect());
+    
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
     sntp_setservername(0, "pool.ntp.org");
     sntp_set_time_sync_notification_cb(time_sync_notification_cb);
@@ -105,10 +111,6 @@ void sntp_sync_time(struct timeval *tv)
 
 static void obtain_time(void)
 {
-    ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-
     initialize_sntp();
 
     // wait for time to be set
