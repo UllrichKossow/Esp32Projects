@@ -11,6 +11,7 @@ public:
     ~Plot();
 
     bool PushValue(double v);
+    void Show(void);
 
 private:
     static const int m_len;

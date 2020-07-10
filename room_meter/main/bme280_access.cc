@@ -16,6 +16,7 @@
 #include "bme280.h"
 #include "sh1106.h"
 #include "i2c_manager.h"
+#include "Plot.h"
 
 using namespace std;
 
@@ -37,7 +38,8 @@ int8_t user_i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_READ, true);
 
-    if (len > 1) {
+    if (len > 1) 
+	{
         i2c_master_read(cmd, data, len-1, I2C_MASTER_ACK);
     }
     i2c_master_read_byte(cmd, data+len-1, I2C_MASTER_NACK);
@@ -171,7 +173,8 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
     req_delay = bme280_cal_meas_delay(&dev->settings);
 
     /* Continuously stream sensor data */
-    int n = 0;
+    Plot p = Plot(6);
+	int n = 0;
     while (1)
     {
         struct timespec now;
@@ -199,6 +202,7 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
 
             //print_sensor_data(&comp_data);
             show_data_string(&comp_data);
+			p.PushValue(comp_data.pressure);
         }
 
         struct timespec now_rt;
@@ -232,9 +236,7 @@ void sync_time(void);
 extern "C" void read_bme(void);
 
 void read_bme()
-{	
-    
-    
+{    
     struct bme280_dev dev;
 
     /* Variable to define the result */
