@@ -51,6 +51,9 @@ bool Plot::PushValue(double v)
 
 void Plot::Show()
 {
+    if (!m_values)
+	return;
+    
     double vmax, vmin;
     vmax = vmin = m_values[0];
     for (int i = 0; i < m_len; ++i)

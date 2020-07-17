@@ -173,7 +173,7 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
     req_delay = bme280_cal_meas_delay(&dev->settings);
 
     
-    Plot p = Plot(2);
+    Plot p = Plot(60);
     int n = 0;
 
     while (1)
@@ -182,8 +182,10 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
 
         clock_gettime(CLOCK_REALTIME, &now);
 
-        if ((now.tv_sec % 10 == 0) || (n++ < 10))
+        if ((now.tv_sec % 10 == 0) || (n < 10))
         {
+	    n++;
+	    
             /* Set the sensor to forced mode */
             rslt = bme280_set_sensor_mode(BME280_FORCED_MODE, dev);
             if (rslt != BME280_OK)
@@ -204,9 +206,10 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
             //print_sensor_data(&comp_data);
             show_data_string(&comp_data);
 
-	    if(n > 10)
+	    if(n > 5)
 	    {
-		if (p.PushValue(comp_data.pressure))
+		p.PushValue(comp_data.pressure);
+		if (n % 2 == 0)
 		{
 		    p.Show();
 		}
