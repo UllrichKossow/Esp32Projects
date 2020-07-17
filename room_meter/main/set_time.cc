@@ -23,9 +23,8 @@
 #include "esp_attr.h"
 #include "esp_sleep.h"
 #include "nvs_flash.h"
-#include "protocol_examples_common.h"
 #include "esp_sntp.h"
-
+#include "connect.h"
 #include "sh1106.h"
 
 using namespace std;

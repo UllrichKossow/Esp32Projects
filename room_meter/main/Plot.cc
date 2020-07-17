@@ -1,8 +1,11 @@
 // -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*-                                          
 #include "Plot.h"
-#include "sh1106.h"
 
 #include <cmath>
+#include "esp_log.h"
+#include "sh1106.h"
+
+static const char *TAG = "plot";
 
 const int Plot::m_len = 128;
 
@@ -58,10 +61,15 @@ void Plot::Show()
     
     frame_buffer_t fb;
     sh1106_clear_fb(&fb);
+
+    ESP_LOGD(TAG, "vmin=%f vmax=%f", vmin, vmax); 
     
     double dy = vmax-vmin;
     for (int x = 0; x < m_len; ++x)
     {
-        int y = 64 - (int)(m_values[x] - vmin) / dy * 64;
+        int y = 63 - (int)(m_values[x] - vmin) / dy * 63;
+	ESP_LOGD(TAG, "x=%i y=%i", x, y);
+	sh1106_set_pixel(&fb, x, y, true);
     }
+    sh1106_write_fb(&fb);
 }

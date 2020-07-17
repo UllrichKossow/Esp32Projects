@@ -172,9 +172,10 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
      *  and the oversampling configuration. */
     req_delay = bme280_cal_meas_delay(&dev->settings);
 
-    /* Continuously stream sensor data */
-    Plot p = Plot(6);
-	int n = 0;
+    
+    Plot p = Plot(2);
+    int n = 0;
+
     while (1)
     {
         struct timespec now;
@@ -202,7 +203,14 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
 
             //print_sensor_data(&comp_data);
             show_data_string(&comp_data);
-			p.PushValue(comp_data.pressure);
+
+	    if(n > 10)
+	    {
+		if (p.PushValue(comp_data.pressure))
+		{
+		    p.Show();
+		}
+	    }
         }
 
         struct timespec now_rt;
