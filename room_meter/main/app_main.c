@@ -6,5 +6,5 @@
 
 void app_main(void)
 {            
-	read_bme();
+    read_bme();
 }

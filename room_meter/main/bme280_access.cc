@@ -219,7 +219,7 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
         struct timespec now_rt;
         clock_gettime(CLOCK_REALTIME, &now_rt);
         //ESP_LOGI(TAG, "t1=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
-#if 1
+#if 0
         int ms = now_rt.tv_nsec/1000000;
         int delay_ms = 1050 - ms;
         if (delay_ms < 1)
@@ -231,9 +231,7 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
         if (delay_us < 1)
             delay_us = 1;
         esp_sleep_enable_timer_wakeup(delay_us);
-        esp_wifi_stop();
-        esp_light_sleep_start();
-        esp_wifi_start();
+	esp_light_sleep_start();
 #endif    
         show_date_time();
     }
