@@ -1,4 +1,4 @@
-idf_component_register(SRCS app_main.c bme280_access.cc set_time.cc Plot.cc connect.c
+idf_component_register(SRCS app_main.c bme280_access.cc set_time.cc Plot.cc connect.c DataCollector.cc time_helper.cc
                     INCLUDE_DIRS ".")
 
 add_definitions(-DBME280_32BIT_ENABLE)
