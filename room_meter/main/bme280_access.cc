@@ -240,7 +240,7 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
 }
 
 
-void sync_time(void);
+
 
 extern "C" void read_bme(void);
 
@@ -261,11 +261,6 @@ void read_bme()
     dev.delay_ms = user_delay_ms;
 
 
-    sh1106_init();
-    sh1106_display_clear();
-    sh1106_print_line(0, "Sync time...");
-    
-    sync_time();
     sh1106_display_clear();
     
     /* Initialize the bme280 */
