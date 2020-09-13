@@ -15,9 +15,9 @@ void init()
 
 void loop()
 {
-    read_bme();
     Bme280Controller b;
     b.start();
+    read_bme();
 }
 
 extern "C" void app_main(void);
