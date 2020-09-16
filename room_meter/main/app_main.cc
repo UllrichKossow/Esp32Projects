@@ -16,6 +16,7 @@ void init()
 void loop()
 {
     Bme280Controller b;
+    b.init();
     b.start();
     read_bme();
 }
