@@ -4,16 +4,23 @@
 #include "driver/i2c.h"
 
 #include <ctime>
+#include <cmath>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 
 #include "esp_log.h"
 
 static const char* TAG = "Bme280Controller";
+
+using namespace std;
 
 static void to_timer_callback(void *arg)
 {
     Bme280Controller *ctrl = reinterpret_cast<Bme280Controller*>(arg);
     ctrl->timer_callback();
 }
+
 
 static int8_t user_i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len)
 {
@@ -41,6 +48,7 @@ static int8_t user_i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, u
     return (espRc == ESP_OK) ? 0 : -1;
 }
 
+
 static int8_t user_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len)
 {
     esp_err_t espRc;
@@ -59,6 +67,7 @@ static int8_t user_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, 
 
     return (espRc == ESP_OK) ? 0 : -1;
 }
+
 
 static void user_delay_ms(uint32_t msek)
 {
@@ -93,7 +102,9 @@ void Bme280Controller::init()
 
     /* Set the sensor settings */
     rslt = bme280_set_sensor_settings(settings_sel, &m_dev);
+    m_req_delay = bme280_cal_meas_delay(&m_dev.settings);
 }
+
 
 void Bme280Controller::start()
 {
@@ -106,13 +117,43 @@ void Bme280Controller::start()
     };
 
     esp_timer_create(&create_args, &m_timer);
-    esp_timer_start_periodic(m_timer, 1000000);
+    esp_timer_start_periodic(m_timer, 10000000);
 }
+
 
 void Bme280Controller::timer_callback()
 {
     timespec t;
     clock_gettime(CLOCK_REALTIME, &t);
     int64_t now = esp_timer_get_time();
-    ESP_LOGD(TAG, "timer %li %li", t.tv_sec, t.tv_nsec);
+    ESP_LOGI(TAG, "timer %li %li", t.tv_sec, t.tv_nsec);
+
+    int8_t rslt = bme280_set_sensor_mode(BME280_FORCED_MODE, &m_dev);
+    if (rslt != BME280_OK)
+    {
+        ESP_LOGE(TAG, "bme280_set_sensor_mode() failed.");
+        return;
+    }
+    m_dev.delay_ms(m_req_delay);
+    bme280_data comp_data;
+    rslt = bme280_get_sensor_data(BME280_ALL, &comp_data, &m_dev);
+    if (rslt != BME280_OK)
+    {
+        ESP_LOGE(TAG, "bme280_get_sensor_data() failed.");
+        return;
+    }
+    ESP_LOGI(TAG, "%s", showData(comp_data).c_str());
+}
+
+
+string Bme280Controller::showData(const bme280_data &data)
+{
+    ostringstream s;
+
+    s << "Temp " << fixed << setprecision(2) << 0.01 * data.temperature;
+    s << "\tPabs " << fixed << setprecision(2) << 0.01 * data.pressure;
+    s << "\tPcomp " << fixed << setprecision(2) << 0.01 * data.pressure / pow(1 - 570/44330.0, 5.255);
+    s << "\tHum " << fixed << setprecision(3) << 0.001 * data.humidity;
+
+    return s.str();
 }
