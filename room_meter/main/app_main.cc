@@ -27,13 +27,18 @@ void init()
 
 void sleepUpTo(uint64_t usec)
 {
-    uint64_t maxSleep = esp_timer_get_next_alarm() - esp_timer_get_time();
+    uint64_t nextAlarm = esp_timer_get_next_alarm();
+    uint64_t maxSleep = nextAlarm - esp_timer_get_time();
     if (maxSleep > 100)
         maxSleep -= 100;
     uint64_t delay_us = std::min(maxSleep, usec);
     ESP_LOGD(TAG, "Lightsleep for %lli us", delay_us);
     esp_sleep_enable_timer_wakeup(delay_us);
     esp_light_sleep_start();
+    while (esp_timer_get_next_alarm() == nextAlarm)
+    {
+        vTaskDelay(10/portTICK_PERIOD_MS);
+    }
 }
 
 
@@ -45,10 +50,11 @@ void loop()
     b.start();
     while (true)
     {
-        vTaskDelay(10000/portTICK_PERIOD_MS);
-        //sleepUpTo(10000000);
-        timespec d = b.getDuration();
-        ESP_LOGD(TAG, "Duration = %li, %li", d.tv_sec, d.tv_nsec);
+        ESP_LOGD(TAG, "%s", __FUNCTION__);
+        //vTaskDelay(10000/portTICK_PERIOD_MS);
+        sleepUpTo(10000000);
+        //timespec d = b.getDuration();
+        //ESP_LOGD(TAG, "Duration = %li, %li", d.tv_sec, d.tv_nsec);
     }
 #else
     read_bme();

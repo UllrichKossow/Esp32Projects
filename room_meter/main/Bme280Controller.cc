@@ -129,10 +129,6 @@ void Bme280Controller::start()
 void Bme280Controller::timer_callback()
 {
     checkCapacity();
-    timespec t;
-    clock_gettime(CLOCK_REALTIME, &t);
-    int64_t now = esp_timer_get_time();
-    //ESP_LOGD(TAG, "timer %li %li", t.tv_sec, t.tv_nsec);
 
     int8_t rslt = bme280_set_sensor_mode(BME280_FORCED_MODE, &m_dev);
     if (rslt != BME280_OK)
@@ -206,7 +202,9 @@ void Bme280Controller::addMeasure(const bme280_data &data)
 timespec Bme280Controller::getDuration()
 {
     m_measureLock.lock();
-    timespec duration = timespec_sub(m_measures.back().t, m_measures.front().t);
+    timespec t1 = m_measures.back().t;
+    timespec t2 = m_measures.front().t;
+    timespec duration = timespec_sub(t1, t2);
     m_measureLock.unlock();
     return duration;
 }
