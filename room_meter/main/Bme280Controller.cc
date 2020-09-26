@@ -1,4 +1,5 @@
 #include "Bme280Controller.h"
+#include "time_helper.h"
 
 #include "i2c_manager.h"
 #include "driver/i2c.h"
@@ -9,6 +10,9 @@
 #include <sstream>
 #include <iomanip>
 
+#include "freertos/FreeRTOS.h"
+
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include "esp_log.h"
 
 static const char* TAG = "Bme280Controller";
@@ -78,6 +82,7 @@ static void user_delay_ms(uint32_t msek)
 
 
 Bme280Controller::Bme280Controller()
+    : m_maxSize(1024)
 {
 
 }
@@ -115,18 +120,19 @@ void Bme280Controller::start()
         .dispatch_method = ESP_TIMER_TASK,
         .name = "Bme280Controller"
     };
-
+    m_currentInterval = 1000000;
     esp_timer_create(&create_args, &m_timer);
-    esp_timer_start_periodic(m_timer, 10000000);
+    esp_timer_start_periodic(m_timer, m_currentInterval);
 }
 
 
 void Bme280Controller::timer_callback()
 {
+    checkCapacity();
     timespec t;
     clock_gettime(CLOCK_REALTIME, &t);
     int64_t now = esp_timer_get_time();
-    ESP_LOGI(TAG, "timer %li %li", t.tv_sec, t.tv_nsec);
+    //ESP_LOGD(TAG, "timer %li %li", t.tv_sec, t.tv_nsec);
 
     int8_t rslt = bme280_set_sensor_mode(BME280_FORCED_MODE, &m_dev);
     if (rslt != BME280_OK)
@@ -142,7 +148,30 @@ void Bme280Controller::timer_callback()
         ESP_LOGE(TAG, "bme280_get_sensor_data() failed.");
         return;
     }
-    ESP_LOGI(TAG, "%s", showData(comp_data).c_str());
+    addMeasure(comp_data);
+    //ESP_LOGD(TAG, "%s", showData(comp_data).c_str());
+}
+
+
+void Bme280Controller::checkCapacity()
+{
+    m_measureLock.lock();
+    if (m_measures.size() >= (m_maxSize - 1))
+    {
+        if (m_currentInterval < 100000000)
+        {
+            m_currentInterval *= 2;
+        }
+        esp_timer_stop(m_timer);
+        esp_timer_start_periodic(m_timer, m_currentInterval);
+        vector<measure_t> tmp;
+        for (int i = 0; i < m_measures.size(); i += 2)
+        {
+            tmp.push_back(m_measures[i]);
+        }
+        m_measures = tmp;
+    }
+    m_measureLock.unlock();
 }
 
 
@@ -156,4 +185,28 @@ string Bme280Controller::showData(const bme280_data &data)
     s << "\tHum " << fixed << setprecision(3) << 0.001 * data.humidity;
 
     return s.str();
+}
+
+
+void Bme280Controller::addMeasure(const bme280_data &data)
+{
+    ESP_LOGD(TAG, "%s heap=%i, values=%i, interval=%i", __FUNCTION__, xPortGetFreeHeapSize(), m_measures.size(), m_currentInterval);
+
+    measure_t m;
+    clock_gettime(CLOCK_MONOTONIC, &m.t);
+    m.temp = 0.01 * data.temperature;
+    m.hum = 0.001 * data.humidity;
+    m.p_abs = 0.01 * data.pressure;
+    m.p_nn = 0.01 * data.pressure / pow(1 - 570 / 44330.0, 5.255);
+    m_measureLock.lock();
+    m_measures.push_back(m);
+    m_measureLock.unlock();
+}
+
+timespec Bme280Controller::getDuration()
+{
+    m_measureLock.lock();
+    timespec duration = timespec_sub(m_measures.back().t, m_measures.front().t);
+    m_measureLock.unlock();
+    return duration;
 }

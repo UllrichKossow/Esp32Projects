@@ -184,8 +184,8 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
 
         if ((now.tv_sec % 10 == 0) || (n < 10))
         {
-	    n++;
-	    
+            n++;
+
             /* Set the sensor to forced mode */
             rslt = bme280_set_sensor_mode(BME280_FORCED_MODE, dev);
             if (rslt != BME280_OK)
@@ -206,14 +206,14 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
             //print_sensor_data(&comp_data);
             show_data_string(&comp_data);
 
-	    if(n > 5)
-	    {
-		p.PushValue(comp_data.pressure);
-		if (n % 2 == 0)
-		{
-		    p.Show();
-		}
-	    }
+            if(n > 5)
+            {
+                p.PushValue(comp_data.pressure);
+                if (n % 2 == 0)
+                {
+                    p.Show();
+                }
+            }
         }
 
         struct timespec now_rt;
@@ -231,7 +231,7 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
         if (delay_us < 1)
             delay_us = 1;
         esp_sleep_enable_timer_wakeup(delay_us);
-	esp_light_sleep_start();
+        esp_light_sleep_start();
 #endif    
         show_date_time();
     }

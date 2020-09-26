@@ -1,5 +1,6 @@
 // -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*-
 
+#include <algorithm>
 #include "Bme280Controller.h"
 #include "bme280_access.h"
 #include "sh1106.h"
@@ -7,6 +8,12 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_sleep.h"
+
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#include "esp_log.h"
+
+static const char* TAG = "app_main";
 
 void sync_time(void);
 
@@ -18,15 +25,30 @@ void init()
     sync_time();
 }
 
+void sleepUpTo(uint64_t usec)
+{
+    uint64_t maxSleep = esp_timer_get_next_alarm() - esp_timer_get_time();
+    if (maxSleep > 100)
+        maxSleep -= 100;
+    uint64_t delay_us = std::min(maxSleep, usec);
+    ESP_LOGD(TAG, "Lightsleep for %lli us", delay_us);
+    esp_sleep_enable_timer_wakeup(delay_us);
+    esp_light_sleep_start();
+}
+
+
 void loop()
 {
-#if 0
+#if 1
     Bme280Controller b;
     b.init();
     b.start();
     while (true)
     {
-        vTaskDelay(100/portTICK_PERIOD_MS);
+        vTaskDelay(10000/portTICK_PERIOD_MS);
+        //sleepUpTo(10000000);
+        timespec d = b.getDuration();
+        ESP_LOGD(TAG, "Duration = %li, %li", d.tv_sec, d.tv_nsec);
     }
 #else
     read_bme();

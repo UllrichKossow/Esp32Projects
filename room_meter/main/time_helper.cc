@@ -11,8 +11,8 @@ timespec timespec_add(const timespec &t1, const timespec &t2)
     tmp.tv_nsec += t2.tv_nsec;
     while (tmp.tv_nsec >= 1000000000)
     {
-	tmp.tv_nsec -= 1000000000;
-	tmp.tv_sec += 1;
+        tmp.tv_nsec -= 1000000000;
+        tmp.tv_sec += 1;
     }
     return tmp;
 }
@@ -23,8 +23,8 @@ timespec timespec_sub(const timespec &t1, const timespec &t2)
     timespec tmp = t1;
     if (t2.tv_nsec > t1.tv_nsec)
     {
-	tmp.tv_nsec = tmp.tv_nsec - t2.tv_nsec + 1000000000;
-	tmp.tv_sec = tmp.tv_sec - t2.tv_sec + 1;
+        tmp.tv_nsec = tmp.tv_nsec - t2.tv_nsec + 1000000000;
+        tmp.tv_sec = tmp.tv_sec - t2.tv_sec + 1;
     }
     else
     {

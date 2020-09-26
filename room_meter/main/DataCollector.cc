@@ -15,8 +15,8 @@ void DataCollector::AddValue(double y)
 {
     if (timespec_isNull(m_first))
     {
-	clock_gettime(CLOCK_MONOTONIC, &m_first);
-	clock_gettime(CLOCK_MONOTONIC, &m_next); 
+        clock_gettime(CLOCK_MONOTONIC, &m_first);
+        clock_gettime(CLOCK_MONOTONIC, &m_next);
     }
     
     m_avg_sum += y;
@@ -26,8 +26,8 @@ void DataCollector::AddValue(double y)
     clock_gettime(CLOCK_MONOTONIC, &now);
     if (timespec_compare(now, m_next) >= 0)
     {
-	++m_counter;
-	m_next.tv_sec += m_interval;
+        ++m_counter;
+        m_next.tv_sec += m_interval;
     }
 
 }
