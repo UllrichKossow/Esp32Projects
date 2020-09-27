@@ -82,9 +82,8 @@ static void user_delay_ms(uint32_t msek)
 
 
 Bme280Controller::Bme280Controller()
-    : m_maxSize(1024)
+    : m_cnt(0), m_maxSize(1024)
 {
-
 }
 
 void Bme280Controller::init()
@@ -128,6 +127,8 @@ void Bme280Controller::start()
 
 void Bme280Controller::timer_callback()
 {
+    ++m_cnt;
+
     checkCapacity();
 
     int8_t rslt = bme280_set_sensor_mode(BME280_FORCED_MODE, &m_dev);
@@ -148,6 +149,10 @@ void Bme280Controller::timer_callback()
     //ESP_LOGD(TAG, "%s", showData(comp_data).c_str());
 }
 
+uint32_t Bme280Controller::getCounter() const
+{
+    return m_cnt;
+}
 
 void Bme280Controller::checkCapacity()
 {
@@ -207,4 +212,10 @@ timespec Bme280Controller::getDuration()
     timespec duration = timespec_sub(t1, t2);
     m_measureLock.unlock();
     return duration;
+}
+
+
+uint32_t Bme280Controller::getNumberOfValues()
+{
+    return m_measures.size();
 }

@@ -18,7 +18,10 @@ public:
     void start();
     void timer_callback(void);
 
+    uint32_t getCounter() const ;
+
     timespec getDuration();
+    uint32_t getNumberOfValues();
 
 
 public:
@@ -32,6 +35,7 @@ public:
     };
 
 private:
+    uint32_t m_cnt;
     esp_timer_handle_t m_timer;
     uint32_t m_currentInterval;
     uint32_t m_maxSize;

@@ -121,7 +121,7 @@ void show_date_time()
     char str_time[64];
     char str_date[64];
     strftime(str_time, sizeof(str_time), "%T", &timeinfo);
-    strftime(str_date, sizeof(str_time), "%F", &timeinfo);
+    strftime(str_date, sizeof(str_date), "%F", &timeinfo);
     s << str_time << " " << now_rt.tv_nsec/1000000 ;
     
     sh1106_print_line(4,str_date);
