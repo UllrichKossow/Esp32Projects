@@ -12,7 +12,7 @@
 
 #include "freertos/FreeRTOS.h"
 
-#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+//#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include "esp_log.h"
 
 static const char* TAG = "Bme280Controller";
@@ -206,11 +206,15 @@ void Bme280Controller::addMeasure(const bme280_data &data)
 
 timespec Bme280Controller::getDuration()
 {
-    m_measureLock.lock();
-    timespec t1 = m_measures.back().t;
-    timespec t2 = m_measures.front().t;
-    timespec duration = timespec_sub(t1, t2);
-    m_measureLock.unlock();
+    timespec duration = {0, 0};
+    if (m_measures.size() > 1)
+    {
+        m_measureLock.lock();
+        timespec t1 = m_measures.back().t;
+        timespec t2 = m_measures.front().t;
+        duration = timespec_sub(t1, t2);
+        m_measureLock.unlock();
+    }
     return duration;
 }
 

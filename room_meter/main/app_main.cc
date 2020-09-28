@@ -12,7 +12,7 @@
 #include "freertos/task.h"
 #include "esp_sleep.h"
 
-#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+//#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include "esp_log.h"
 
 using namespace std;
@@ -46,6 +46,10 @@ void show_date_time()
     s.str("");
     s << now_mo.tv_sec << " " << now_mo.tv_nsec/1000000 << " " << now_mo.tv_sec % 3600;
     sh1106_print_line(4, s.str().c_str());
+
+    s.str("");
+    s << "Heap: " << xPortGetFreeHeapSize();
+    sh1106_print_line(5, s.str().c_str());
 }
 
 void init()
@@ -60,10 +64,10 @@ void sleepUpTo(uint64_t usec)
 {
     uint64_t nextAlarm = esp_timer_get_next_alarm();
     uint64_t maxSleep = nextAlarm - esp_timer_get_time();
-    if (maxSleep > 100)
-        maxSleep -= 100;
+    if (maxSleep > 10)
+        maxSleep -= 10;
     uint64_t delay_us = min(maxSleep, usec);
-    ESP_LOGD(TAG, "Lightsleep for %lli us", delay_us);
+    //ESP_LOGD(TAG, "Lightsleep for %lli us", delay_us);
 
     esp_sleep_enable_timer_wakeup(delay_us);
     esp_light_sleep_start();
@@ -76,24 +80,27 @@ void loop()
     Bme280Controller b;
     b.init();
     b.start();
+    uint32_t cnt = b.getCounter();
+
     while (true)
     {
-        ESP_LOGD(TAG, "%s", __FUNCTION__);
-        sleepUpTo(10*1000*1000);
-        uint32_t cnt = b.getCounter();
-        while (cnt == b.getCounter())
+        //ESP_LOGD(TAG, "%s", __FUNCTION__);
+        //vTaskDelay(1000 / portTICK_PERIOD_MS);
+        sleepUpTo(10000000);
+        if (cnt != b.getCounter())
         {
-            vTaskDelay(10/portTICK_PERIOD_MS);
-        }
-        timespec d = b.getDuration();
-        ESP_LOGD(TAG, "Duration = %li, %li", d.tv_sec, d.tv_nsec);
-        ostringstream s;
-        s << cnt << " " << d.tv_sec + d.tv_nsec / 1000000000.0;
-        sh1106_print_line(0, s.str().c_str());
+            ostringstream s;
+            s << "n: " << b.getNumberOfValues();
+            sh1106_print_line(1, s.str().c_str());
+            s.str("");
 
-        s.str("");
-        s << "n: " << b.getNumberOfValues();
-        sh1106_print_line(1, s.str().c_str());
+            cnt = b.getCounter();
+            timespec d = b.getDuration();
+            ESP_LOGD(TAG, "Duration = %li, %li", d.tv_sec, d.tv_nsec);
+            s << cnt << " " << d.tv_sec + d.tv_nsec / 1000000000.0;
+            sh1106_print_line(0, s.str().c_str());
+            s.str("");
+        }
         show_date_time();
     }
 #else
