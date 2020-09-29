@@ -45,7 +45,10 @@ void sh1106_init()
     
     i2c_master_write_byte(cmd, OLED_CMD_SET_SEGMENT_REMAP_INVERSE, true); // reverse left-right mapping
     i2c_master_write_byte(cmd, OLED_CMD_SET_COM_SCAN_MODE_REVERSE, true); // reverse up-bottom mapping
-    
+
+    i2c_master_write_byte(cmd, OLED_CMD_SET_CONTRAST, true);
+    i2c_master_write_byte(cmd, 0x10, true);
+
     i2c_master_write_byte(cmd, OLED_CMD_DISPLAY_ON, true);
     
     i2c_master_write_byte(cmd, 0x00, true); // reset column low bits
