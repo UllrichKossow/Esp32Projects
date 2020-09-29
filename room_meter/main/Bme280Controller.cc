@@ -229,3 +229,30 @@ uint32_t Bme280Controller::getNumberOfValues()
 {
     return m_measures.size();
 }
+
+vector<Bme280Controller::measure_t> Bme280Controller::getValuesForDuration(uint32_t count, uint32_t duration)
+{
+    vector<measure_t> v(count);
+    m_measureLock.lock();
+    timespec t_last = m_measures.back().t;
+    timespec t_first = t_last;
+    t_first.tv_sec -= duration;
+
+    int measureIdx = 0;
+
+    for (int i = 0; i < count; ++i)
+    {
+        double offset = duration * double(i) / double(count);
+        timespec t = t_first;
+        t.tv_sec += (int) offset;
+        while ((timespec_compare(m_measures[measureIdx].t, t) < 0) && (measureIdx < m_measures.size()))
+        {
+            ++measureIdx;
+        }
+        ESP_LOGD(TAG, "offset=%f  v[%i] = m[%i]", offset, i, measureIdx);
+        v[i] = m_measures[measureIdx];
+    }
+
+    m_measureLock.unlock();
+    return v;
+}

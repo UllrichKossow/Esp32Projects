@@ -125,32 +125,6 @@ void sh1106_display_clear()
 }
 
 
-void task_sh1106_contrast(void *ignore)
-{
-    i2c_cmd_handle_t cmd = i2c_manager::instance()->GetCmdHandle();
-    
-    uint8_t contrast = 0;
-    uint8_t direction = 1;
-    while (true)
-    {
-        i2c_master_start(cmd);
-        i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
-        i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
-        i2c_master_write_byte(cmd, OLED_CMD_SET_CONTRAST, true);
-        i2c_master_write_byte(cmd, contrast, true);
-        i2c_master_stop(cmd);
-        i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
-        i2c_cmd_link_delete(cmd);
-        vTaskDelay(1/portTICK_PERIOD_MS);
-        
-        contrast += direction;
-        if (contrast == 0xFF) { direction = -1; }
-        if (contrast == 0x0) { direction = 1; }
-    }
-    vTaskDelete(NULL);
-}
-
-
 void sh1106_print_line(int row, const char *text)
 {
     uint8_t text_len = strlen(text);

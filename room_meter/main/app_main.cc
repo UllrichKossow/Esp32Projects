@@ -85,7 +85,6 @@ void loop()
     while (true)
     {
         //ESP_LOGD(TAG, "%s", __FUNCTION__);
-        //vTaskDelay(1000 / portTICK_PERIOD_MS);
         sleepUpTo(10000000);
         if (cnt != b.getCounter())
         {
@@ -100,6 +99,11 @@ void loop()
             s << cnt << " " << d.tv_sec + d.tv_nsec / 1000000000.0;
             sh1106_print_line(0, s.str().c_str());
             s.str("");
+
+            if (cnt % 10 == 0)
+            {
+                auto x = b.getValuesForDuration(128, min(d.tv_sec, 86400L));
+            }
         }
         show_date_time();
     }
