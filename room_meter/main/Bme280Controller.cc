@@ -162,15 +162,21 @@ void Bme280Controller::checkCapacity()
         if (m_currentInterval < 100000000)
         {
             m_currentInterval *= 2;
+            esp_timer_stop(m_timer);
+            esp_timer_start_periodic(m_timer, m_currentInterval);
+
+            vector<measure_t> tmp;
+            for (int i = 0; i < m_measures.size(); i += 2)
+            {
+                tmp.push_back(m_measures[i]);
+            }
+            m_measures = tmp;
         }
-        esp_timer_stop(m_timer);
-        esp_timer_start_periodic(m_timer, m_currentInterval);
-        vector<measure_t> tmp;
-        for (int i = 0; i < m_measures.size(); i += 2)
+        else
         {
-            tmp.push_back(m_measures[i]);
+            vector<measure_t> tmp(m_measures.begin()+(m_maxSize/4), m_measures.end());
+            m_measures = tmp;
         }
-        m_measures = tmp;
     }
     m_measureLock.unlock();
 }
