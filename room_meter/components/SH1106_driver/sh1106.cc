@@ -200,7 +200,7 @@ void sh1106_set_pixel(frame_buffer_t *fb, uint8_t x, uint8_t y, bool p)
 {
     if((x > 127) || (y > 63))
     {
-        ESP_LOGE(tag, "sh1106_set_pixel x/y out of range.");
+        ESP_LOGE(tag, "sh1106_set_pixel %i, %i out of range.", x, y);
         return;
     }
     uint8_t page;
@@ -241,6 +241,7 @@ void play_graph()
 //--------------------------------------------------------------------------------
 void sh1106_line(frame_buffer_t *fb, int x0, int y0, int x1, int y1)
 {
+
     int dx = abs(x1 - x0);
     int sx = x0 < x1 ? 1 : -1;
     int dy = -abs(y1 - y0);

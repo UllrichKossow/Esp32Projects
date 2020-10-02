@@ -230,7 +230,7 @@ uint32_t Bme280Controller::getNumberOfValues()
     return m_measures.size();
 }
 
-vector<Bme280Controller::measure_t> Bme280Controller::getValuesForDuration(uint32_t count, uint32_t duration)
+vector<measure_t> Bme280Controller::getValuesForDuration(uint32_t count, uint32_t duration)
 {
     vector<measure_t> v(count);
     m_measureLock.lock();

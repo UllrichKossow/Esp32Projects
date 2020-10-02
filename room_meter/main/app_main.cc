@@ -1,6 +1,7 @@
 // -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*-
 
 #include <algorithm>
+#include <functional>
 #include <sstream>
 
 #include "Bme280Controller.h"
@@ -74,6 +75,33 @@ void sleepUpTo(uint64_t usec)
 }
 
 
+void plotValues(vector<double> values)
+{
+    double v_max = values[0];
+    double v_min = values[0];
+    for (int i = 0; i < values.size(); ++i)
+    {
+        v_max = max(v_max, values[i]);
+        v_min = min(v_min, values[i]);
+    }
+    double dy = v_max - v_min;
+    frame_buffer_t fb;
+    sh1106_clear_fb(&fb);
+    int last_x = 0;
+    int last_y = 0;
+    for (int x = 0; x < 128; ++x)
+    {
+        int y = 63 - (int) (63 * (values[x] - v_min) / dy);
+        //ESP_LOGD(TAG, "x=%i, y=%i", x, y);
+
+        sh1106_line(&fb, last_x, last_y, x, y);
+        last_x = x;
+        last_y = y;
+    }
+    sh1106_write_fb(&fb);
+
+}
+
 void loop()
 {
 #if 1
@@ -84,24 +112,31 @@ void loop()
 
     while (true)
     {
-        //ESP_LOGD(TAG, "%s", __FUNCTION__);
+        ESP_LOGD(TAG, "%s", __FUNCTION__);
         sleepUpTo(10000000);
         if (cnt != b.getCounter())
         {
             ostringstream s;
-            s << "n: " << b.getNumberOfValues();
-            sh1106_print_line(1, s.str().c_str());
-            s.str("");
-
             cnt = b.getCounter();
             timespec d = b.getDuration();
-            ESP_LOGD(TAG, "Duration = %li, %li", d.tv_sec, d.tv_nsec);
-            s << cnt << " " << d.tv_sec + d.tv_nsec / 1000000000.0;
-            sh1106_print_line(0, s.str().c_str());            
 
+            if (cnt % 10 == 5)
+            {
+                s << "n: " << b.getNumberOfValues();
+                sh1106_print_line(1, s.str().c_str());
+                s.str("");
+
+                ESP_LOGD(TAG, "Duration = %li, %li", d.tv_sec, d.tv_nsec);
+                s << cnt << " " << d.tv_sec + d.tv_nsec / 1000000000.0;
+                sh1106_print_line(0, s.str().c_str());
+            }
             if (cnt % 10 == 0)
             {
-                vector<Bme280Controller::measure_t> m = b.getValuesForDuration(128, min(d.tv_sec, 86400L));
+                vector<measure_t> m = b.getValuesForDuration(128, min(d.tv_sec, 86400L));
+
+                vector<double> plotData;
+                transform(m.begin(), m.end(), back_inserter(plotData), mem_fn(&measure_t::p_nn));
+                plotValues(plotData);
                 vector<double> x(m.size());
                 double v_max = m[0].p_nn;
                 double v_min = m[0].p_nn;
@@ -116,7 +151,7 @@ void loop()
                 sh1106_print_line(7, s.str().c_str());
             }
         }
-        show_date_time();
+        //show_date_time();
     }
 #else
     read_bme();
