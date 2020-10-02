@@ -236,3 +236,33 @@ void play_graph()
     vTaskDelay(5000/portTICK_PERIOD_MS);
     sh1106_display_clear();
 }
+
+
+//--------------------------------------------------------------------------------
+void sh1106_line(frame_buffer_t *fb, int x0, int y0, int x1, int y1)
+{
+    int dx = abs(x1 - x0);
+    int sx = x0 < x1 ? 1 : -1;
+    int dy = -abs(y1 - y0);
+    int sy = y0 < y1 ? 1 : -1;
+    int err = dx + dy;
+    int  e2; /* error value e_xy */
+
+    while (true)
+    {
+        sh1106_set_pixel(fb, x0, y0, true);
+        if (x0 == x1 && y0 == y1)
+            break;
+        e2 = 2*err;
+        if (e2 > dy)
+        {
+            err += dy;
+            x0 += sx;
+        } /* e_xy+e_x > 0 */
+        if (e2 < dx)
+        {
+            err += dx;
+            y0 += sy;
+        } /* e_xy+e_y < 0 */
+    }
+}
