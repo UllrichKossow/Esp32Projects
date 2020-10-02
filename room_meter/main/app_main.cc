@@ -97,12 +97,23 @@ void loop()
             timespec d = b.getDuration();
             ESP_LOGD(TAG, "Duration = %li, %li", d.tv_sec, d.tv_nsec);
             s << cnt << " " << d.tv_sec + d.tv_nsec / 1000000000.0;
-            sh1106_print_line(0, s.str().c_str());
-            s.str("");
+            sh1106_print_line(0, s.str().c_str());            
 
             if (cnt % 10 == 0)
             {
-                auto x = b.getValuesForDuration(128, min(d.tv_sec, 86400L));
+                vector<Bme280Controller::measure_t> m = b.getValuesForDuration(128, min(d.tv_sec, 86400L));
+                vector<double> x(m.size());
+                double v_max = m[0].p_nn;
+                double v_min = m[0].p_nn;
+                for (int i = 0; i < m.size(); ++i)
+                {
+                    x[i] = m[i].p_nn;
+                    v_max = max(v_max, x[i]);
+                    v_min = min(v_min, x[i]);
+                }
+                s.str("");
+                s << v_min << " " << v_max;
+                sh1106_print_line(7, s.str().c_str());
             }
         }
         show_date_time();
