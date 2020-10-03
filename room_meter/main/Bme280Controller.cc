@@ -13,6 +13,7 @@
 #include "freertos/FreeRTOS.h"
 
 //#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+
 #include "esp_log.h"
 
 static const char* TAG = "Bme280Controller";
@@ -127,6 +128,7 @@ void Bme280Controller::start()
 
 void Bme280Controller::timer_callback()
 {
+    ESP_LOGD(TAG, "timer_callback");
     ++m_cnt;
 
     checkCapacity();
@@ -249,7 +251,7 @@ vector<measure_t> Bme280Controller::getValuesForDuration(uint32_t count, uint32_
         {
             ++measureIdx;
         }
-        ESP_LOGD(TAG, "offset=%f  v[%i] = m[%i]", offset, i, measureIdx);
+        //ESP_LOGD(TAG, "offset=%f  v[%i] = m[%i]", offset, i, measureIdx);
         v[i] = m_measures[measureIdx];
     }
 

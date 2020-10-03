@@ -166,7 +166,6 @@ void sh1106_print_line(int row, const char *text)
 
 
 //--------------------------------------------------------------------------------
-
 void sh1106_write_fb(frame_buffer_t *fb)
 {
     for (uint8_t i = 0; i < 8; i++)
