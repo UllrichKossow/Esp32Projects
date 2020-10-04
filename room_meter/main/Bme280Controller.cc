@@ -156,6 +156,11 @@ uint32_t Bme280Controller::getCounter() const
     return m_cnt;
 }
 
+uint32_t Bme280Controller::getCurrentInterval() const
+{
+    return m_currentInterval;
+}
+
 void Bme280Controller::checkCapacity()
 {
     m_measureLock.lock();

@@ -30,6 +30,7 @@ public:
     void timer_callback(void);
 
     uint32_t getCounter() const ;
+    uint32_t getCurrentInterval() const;
 
     timespec getDuration();
     uint32_t getNumberOfValues();
