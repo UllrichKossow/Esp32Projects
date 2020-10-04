@@ -5,7 +5,6 @@
 #include <sstream>
 
 #include "Bme280Controller.h"
-#include "bme280_access.h"
 #include "sh1106.h"
 
 
@@ -64,13 +63,18 @@ void plotValues(vector<double> values)
     sh1106_clear_fb(&fb);
     int last_x = 0;
     int last_y = 63 - (int) (63 * (values[0] - v_min) / dy);
+    last_y = min(63, last_y);
+    last_y = max(0, last_y);
 
     for (int x = 0; x < 128; ++x)
     {
         int y = 63 - (int) (63 * (values[x] - v_min) / dy);
-        //ESP_LOGD(TAG, "x=%i, y=%i", x, y);
 
-        sh1106_line(&fb, last_x, last_y, x, y);
+        y = min(63, y);
+        y = max(0, y);
+        ESP_LOGD(TAG, "x=%i, y=%i", x, y);
+
+        sh1106_line(&fb, last_x, min(63,last_y), x, min(63, y));
         last_x = x;
         last_y = y;
     }
@@ -112,7 +116,6 @@ void showStatistics(const string &title, const vector<double> values)
 void showSummary(size_t values, size_t cycles, time_t duration)
 {
     ostringstream s;
-    int line = 0;
     struct timespec now_rt, now_mo;
     clock_gettime(CLOCK_REALTIME, &now_rt);
     clock_gettime(CLOCK_MONOTONIC, &now_mo);
@@ -127,6 +130,8 @@ void showSummary(size_t values, size_t cycles, time_t duration)
     strftime(str_date, sizeof(str_date), "%F", &timeinfo);
     s << str_time << " " << now_rt.tv_nsec/1000000 ;
 
+    int line = 0;
+    sh1106_display_clear();
     sh1106_print_line(line++,str_date);
     sh1106_print_line(line++,s.str().c_str());
 
@@ -175,7 +180,7 @@ void loop()
         switch (cycle)
         {
         case 0:
-            showSummary(m.size(), b.getCounter(), d.tv_sec);
+            showSummary(b.getNumberOfValues(), b.getCounter(), d.tv_sec);
             break;
         case 1:
             transform(m.begin(), m.end(), back_inserter(plotData), mem_fn(&measure_t::temp));
