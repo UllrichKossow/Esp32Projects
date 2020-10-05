@@ -12,6 +12,9 @@
 #include "freertos/task.h"
 #include "esp_sleep.h"
 
+#include "esp_pm.h"
+#include "esp32/clk.h"
+
 //#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include "esp_log.h"
 
@@ -167,7 +170,8 @@ void loop()
 
     while (true)
     {
-        sleepUpTo(5 * 1000 * 1000);
+        //sleepUpTo(5 * 1000 * 1000);
+        vTaskDelay(5000/portTICK_PERIOD_MS);
         if (b.getCounter() < 5)
         {
             showSummary(0, 0, 0);
@@ -216,10 +220,24 @@ void loop()
 }
 
 
+void light_sleep_enable(void)
+{
+    int cur_freq_mhz = esp_clk_cpu_freq() / 1000000;
+    int xtal_freq = (int) rtc_clk_xtal_freq_get();
+
+    const esp_pm_config_esp32_t pm_config = {
+        .max_freq_mhz = cur_freq_mhz,
+        .min_freq_mhz = xtal_freq,
+        .light_sleep_enable = true
+    };
+    ESP_ERROR_CHECK( esp_pm_configure(&pm_config) );
+}
+
 //------------------------------------------------------------------------------------------
 extern "C" void app_main(void);
 void app_main()
 {
+    light_sleep_enable();
     init();
     while (true)
     {
