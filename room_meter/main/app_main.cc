@@ -116,7 +116,7 @@ void showStatistics(const string &title, const vector<double> values)
 
 
 //------------------------------------------------------------------------------------------
-void showSummary(size_t values, size_t cycles, time_t duration)
+void showSummary(size_t values, size_t cycles, time_t duration, uint32_t interval)
 {
     ostringstream s;
     struct timespec now_rt, now_mo;
@@ -143,19 +143,23 @@ void showSummary(size_t values, size_t cycles, time_t duration)
     sh1106_print_line(line++, s.str().c_str());
 
     s.str("");
-    s << "Values: " << values;
+    s << "C: " << values;
     sh1106_print_line(line++, s.str().c_str());
 
     s.str("");
-    s << "Cycles: " << cycles;
+    s << "C: " << cycles;
     sh1106_print_line(line++, s.str().c_str());
 
     s.str("");
-    s << "Duration: " << duration;
+    s << "D: " << duration << " sec.";
     sh1106_print_line(line++, s.str().c_str());
 
     s.str("");
-    s << "Heap: " << xPortGetFreeHeapSize();
+    s << "I: " << interval/1000000 << " sec.";
+    sh1106_print_line(line++, s.str().c_str());
+
+    s.str("");
+    s << "H: " << xPortGetFreeHeapSize()/1024 << " kByte." ;
     sh1106_print_line(line++, s.str().c_str());
 }
 
@@ -174,7 +178,7 @@ void loop()
         vTaskDelay(5000/portTICK_PERIOD_MS);
         if (b.getCounter() < 5)
         {
-            showSummary(0, 0, 0);
+            showSummary(0, 0, 0, 0);
             continue;
         }
         timespec d = b.getDuration();
@@ -184,7 +188,7 @@ void loop()
         switch (cycle)
         {
         case 0:
-            showSummary(b.getNumberOfValues(), b.getCounter(), d.tv_sec);
+            showSummary(b.getNumberOfValues(), b.getCounter(), d.tv_sec, b.getCurrentInterval());
             break;
         case 1:
             transform(m.begin(), m.end(), back_inserter(plotData), mem_fn(&measure_t::temp));

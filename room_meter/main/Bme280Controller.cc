@@ -83,7 +83,7 @@ static void user_delay_ms(uint32_t msek)
 
 
 Bme280Controller::Bme280Controller()
-    : m_cnt(0), m_maxSize(384)
+    : m_cnt(0), m_maxSize(1024)
 {
 }
 
@@ -120,7 +120,7 @@ void Bme280Controller::start()
         .dispatch_method = ESP_TIMER_TASK,
         .name = "Bme280Controller"
     };
-    m_currentInterval = 1000000;
+    m_currentInterval = 1*1000*1000;
     esp_timer_create(&create_args, &m_timer);
     esp_timer_start_periodic(m_timer, m_currentInterval);
 }
@@ -166,7 +166,7 @@ void Bme280Controller::checkCapacity()
     m_measureLock.lock();
     if (m_measures.size() >= (m_maxSize - 1))
     {
-        if (m_currentInterval < 100000000)
+        if (m_currentInterval < 256*1000*1000)
         {
             m_currentInterval *= 2;
             esp_timer_stop(m_timer);
