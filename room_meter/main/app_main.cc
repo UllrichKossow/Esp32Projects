@@ -139,27 +139,27 @@ void showSummary(size_t values, size_t cycles, time_t duration, uint32_t interva
     sh1106_print_line(line++,s.str().c_str());
 
     s.str("");
-    s << "M " << now_mo.tv_sec << " " << now_mo.tv_nsec/1000000;
+    s << "Mo " << now_mo.tv_sec << " " << now_mo.tv_nsec/1000000;
     sh1106_print_line(line++, s.str().c_str());
 
     s.str("");
-    s << "C: " << values;
+    s << "Nu " << values;
     sh1106_print_line(line++, s.str().c_str());
 
     s.str("");
-    s << "C: " << cycles;
+    s << "Cy " << cycles;
     sh1106_print_line(line++, s.str().c_str());
 
     s.str("");
-    s << "D: " << duration << " sec.";
+    s << "Du " << duration << " sec.";
     sh1106_print_line(line++, s.str().c_str());
 
     s.str("");
-    s << "I: " << interval/1000000 << " sec.";
+    s << "In " << interval/1000000 << " sec.";
     sh1106_print_line(line++, s.str().c_str());
 
     s.str("");
-    s << "H: " << xPortGetFreeHeapSize()/1024 << " kByte." ;
+    s << "He " << xPortGetFreeHeapSize()/1024 << " kByte." ;
     sh1106_print_line(line++, s.str().c_str());
 }
 
