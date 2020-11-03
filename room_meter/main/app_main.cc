@@ -124,7 +124,7 @@ void showSummary(size_t values, size_t cycles, time_t duration, uint32_t interva
     clock_gettime(CLOCK_MONOTONIC, &now_mo);
     //ESP_LOGI(TAG, "t2=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
     struct tm timeinfo;
-    setenv("TZ", "UTC-2", 1);
+    setenv("TZ", "UTC", 1);
     tzset();
     localtime_r(&now_rt.tv_sec, &timeinfo);
     char str_time[64];
