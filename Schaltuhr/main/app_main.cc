@@ -24,7 +24,7 @@ void loop()
 {
     while (true)
     {
-        struct timespec now_rt;
+        timespec now_rt;
         clock_gettime(CLOCK_REALTIME, &now_rt);
         ESP_LOGI(TAG, "t2=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
 

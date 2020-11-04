@@ -123,13 +123,6 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
-# UDP Logging
-#
-CONFIG_LOG_UDP_PORT=1337
-CONFIG_LOG_UDP_IP="224.0.0.0"
-# end of UDP Logging
-
-#
 # WIFI Connection Configuration
 #
 CONFIG_EXAMPLE_CONNECT_WIFI=y
