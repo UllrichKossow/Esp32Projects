@@ -8,6 +8,7 @@
 
 #include "esp_log.h"
 
+#include "RfSwitch.h"
 #include "Schaltuhr.h"
 
 static const char* TAG = "app_main";
@@ -22,6 +23,9 @@ void init()
 
 void loop()
 {
+    RfSwitch r;
+    r.StartSniffing();
+
     while (true)
     {
         timespec now_rt;

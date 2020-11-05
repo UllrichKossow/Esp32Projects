@@ -4,6 +4,11 @@
 #include <vector>
 #include <ctime>
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+
+
 class RfSwitch
 {
 public:
@@ -13,8 +18,23 @@ public:
     void DumpEdges();
     void Clear();
 
+    void Interrupt();
+    void RxTask();
+
 private:
-    std::vector<timespec> m_buffer;
+    void setup_gpio();
+
+    struct ioEvent
+    {
+        timespec t;
+        int v;
+    };
+
+private:
+    std::vector<ioEvent> m_buffer;
+
+    TaskHandle_t m_rxTask;
+    xQueueHandle m_rxQueue;
 };
 
 #endif // RFSWITCH_H
