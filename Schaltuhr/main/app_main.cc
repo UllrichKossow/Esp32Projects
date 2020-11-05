@@ -30,7 +30,7 @@ void loop()
     {
         timespec now_rt;
         clock_gettime(CLOCK_REALTIME, &now_rt);
-        ESP_LOGI(TAG, "t2=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
+        ESP_LOGI(TAG, "t=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
 
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }

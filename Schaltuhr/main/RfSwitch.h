@@ -1,7 +1,6 @@
 #ifndef RFSWITCH_H
 #define RFSWITCH_H
 
-#include <vector>
 #include <ctime>
 
 #include "freertos/FreeRTOS.h"
@@ -15,8 +14,6 @@ public:
     RfSwitch();
 
     void StartSniffing();
-    void DumpEdges();
-    void Clear();
 
     void Interrupt();
     void RxTask();
@@ -31,8 +28,6 @@ private:
     };
 
 private:
-    std::vector<ioEvent> m_buffer;
-
     TaskHandle_t m_rxTask;
     xQueueHandle m_rxQueue;
 };

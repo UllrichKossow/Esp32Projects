@@ -1,5 +1,7 @@
 #include "RfSwitch.h"
 
+#include "time_helper.h"
+
 #include "esp_log.h"
 #include "driver/gpio.h"
 
@@ -28,16 +30,6 @@ void RfSwitch::StartSniffing()
     setup_gpio();
 }
 
-void RfSwitch::DumpEdges()
-{
-
-}
-
-void RfSwitch::Clear()
-{
-
-}
-
 void RfSwitch::Interrupt()
 {
     ioEvent e;
@@ -48,13 +40,17 @@ void RfSwitch::Interrupt()
 
 void RfSwitch::RxTask()
 {
+    timespec last_t = {0, 0};
     while (true)
     {
         ioEvent e;
-        if (xQueueReceive(m_rxQueue, &e, portMAX_DELAY))
+
+        if (xQueueReceive(m_rxQueue, &e, 1000/portTICK_PERIOD_MS ))
         {
-            m_buffer.push_back(e);
-            ESP_LOGI(TAG, "Edge %li %li %i", e.t.tv_sec, e.t.tv_nsec, e.v);
+            ESP_LOGD(TAG, "Edge %li %li %i", e.t.tv_sec, e.t.tv_nsec, e.v);
+            timespec duration = timespec_sub(e.t, last_t);
+            last_t = e.t;
+            ESP_LOGI(TAG, "IO %li %li %i", duration.tv_sec, duration.tv_nsec, !e.v);
         }
     }
 }
@@ -66,8 +62,9 @@ void RfSwitch::setup_gpio()
     gpio_set_pull_mode(GPIO_NUM_5, GPIO_PULLUP_ONLY);
     gpio_intr_disable(GPIO_NUM_5);
     gpio_set_intr_type(GPIO_NUM_5 , GPIO_INTR_ANYEDGE);
+    gpio_intr_enable(GPIO_NUM_5);
 
-    m_rxQueue = xQueueCreate(100, sizeof(ioEvent));
+    m_rxQueue = xQueueCreate(1000, sizeof(ioEvent));
     xTaskCreate(isr_task, "isr_task", 2048, this, 10, &m_rxTask);
     gpio_install_isr_service(0);
     gpio_isr_handler_add(GPIO_NUM_5, isr_callback, this);
