@@ -45,12 +45,12 @@ void RfSwitch::RxTask()
     {
         ioEvent e;
 
-        if (xQueueReceive(m_rxQueue, &e, 1000/portTICK_PERIOD_MS ))
+        if (xQueueReceive(m_rxQueue, &e, 100/portTICK_PERIOD_MS ))
         {
             ESP_LOGD(TAG, "Edge %li %li %i", e.t.tv_sec, e.t.tv_nsec, e.v);
             timespec duration = timespec_sub(e.t, last_t);
             last_t = e.t;
-            ESP_LOGI(TAG, "IO %li %li %i", duration.tv_sec, duration.tv_nsec, !e.v);
+            ESP_LOGI(TAG, "IO %li %li %li %li %i", e.t.tv_sec, e.t.tv_nsec, duration.tv_sec, duration.tv_nsec, !e.v);
         }
     }
 }
