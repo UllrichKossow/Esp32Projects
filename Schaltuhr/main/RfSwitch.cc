@@ -41,16 +41,48 @@ void RfSwitch::Interrupt()
 void RfSwitch::RxTask()
 {
     timespec last_t = {0, 0};
+    char *line = new char[500];
+    int idx = 0;
     while (true)
     {
         ioEvent e;
+        if (uxQueueSpacesAvailable(m_rxQueue) < 10)
+        {
+            ESP_LOGI(TAG, "Queue available = %i", uxQueueSpacesAvailable(m_rxQueue));
+        }
 
         if (xQueueReceive(m_rxQueue, &e, 100/portTICK_PERIOD_MS ))
         {
-            ESP_LOGD(TAG, "Edge %li %li %i", e.t.tv_sec, e.t.tv_nsec, e.v);
-            timespec duration = timespec_sub(e.t, last_t);
+            uint64_t duration = timespec_to_us(timespec_sub(e.t, last_t));
             last_t = e.t;
-            ESP_LOGI(TAG, "IO %li %li %li %li %i", e.t.tv_sec, e.t.tv_nsec, duration.tv_sec, duration.tv_nsec, !e.v);
+            char ch = '.';
+            if ((duration >= 10000) && (duration < 11000))
+                ch = 'S';
+            else if ((duration >= 180) && (duration < 260))
+                ch = 'a';
+            else if ((duration >= 270) && (duration < 290))
+                ch = 'b';
+            else if ((duration >= 290) && (duration < 340))
+                ch = 'c';
+            else if ((duration >= 1250) && (duration < 1400))
+                ch = 'd';
+            else if ((duration >= 2700) && (duration < 2900))
+                ch = 's';
+            printf("RX %c %lli %lli %i\n", ch, timespec_to_us(e.t), duration, !e.v);
+
+            if (idx < 499)
+            {
+                if (ch == 'S')
+                {
+                    line[idx++] = '\0';
+                    if (idx > 1)
+                    {
+                        printf("Code %s\n", line);
+                        idx = 0;
+                    }
+                }
+                line[idx++] = ch;
+            }
         }
     }
 }

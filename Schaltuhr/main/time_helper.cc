@@ -65,7 +65,19 @@ int timespec_compare(const timespec &t1, const timespec &t2)
 }
 
 //------------------------------------------------------------------------------
-bool timespec_isNull(const timespec t)
+bool timespec_isNull(const timespec &t)
 {
     return (t.tv_sec == 0) && (t.tv_nsec == 0);
+}
+
+//------------------------------------------------------------------------------
+uint64_t timespec_to_us(const timespec &t)
+{
+    return t.tv_sec * 1000 + t.tv_nsec / 1000;
+}
+
+//------------------------------------------------------------------------------
+uint64_t timespec_to_ms(const timespec &t)
+{
+    return t.tv_sec * 1000000 + t.tv_nsec / 1000000;
 }
