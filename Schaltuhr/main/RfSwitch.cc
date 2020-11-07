@@ -1,8 +1,7 @@
 #include "RfSwitch.h"
 
-#include "time_helper.h"
-
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "driver/gpio.h"
 
 static const char* TAG = "RfSwitch";
@@ -33,14 +32,14 @@ void RfSwitch::StartSniffing()
 void RfSwitch::Interrupt()
 {
     ioEvent e;
-    clock_gettime(CLOCK_MONOTONIC, &e.t);
+    e.t = esp_timer_get_time();
     e.v = gpio_get_level(GPIO_NUM_5);
     xQueueSendFromISR(m_rxQueue, &e, NULL);
 }
 
 void RfSwitch::RxTask()
 {
-    timespec last_t = {0, 0};
+    int64_t last_t = 0;
     char *line = new char[500];
     int idx = 0;
     while (true)
@@ -53,22 +52,22 @@ void RfSwitch::RxTask()
 
         if (xQueueReceive(m_rxQueue, &e, 100/portTICK_PERIOD_MS ))
         {
-            uint64_t duration = timespec_to_us(timespec_sub(e.t, last_t));
+            int64_t duration = e.t - last_t;
             last_t = e.t;
             char ch = '.';
             if ((duration >= 10000) && (duration < 11000))
                 ch = 'S';
-            else if ((duration >= 180) && (duration < 260))
-                ch = 'a';
-            else if ((duration >= 270) && (duration < 290))
-                ch = 'b';
-            else if ((duration >= 290) && (duration < 340))
-                ch = 'c';
-            else if ((duration >= 1250) && (duration < 1400))
-                ch = 'd';
-            else if ((duration >= 2700) && (duration < 2900))
+            else if ((duration >= 2700) && (duration < 2800))
                 ch = 's';
-            printf("RX %c %lli %lli %i\n", ch, timespec_to_us(e.t), duration, !e.v);
+            else if ((duration >= 220) && (duration < 250))
+                ch = 'a';
+            else if ((duration >= 250) && (duration < 300))
+                ch = 'b';
+            else if ((duration >= 300) && (duration < 330))
+                ch = 'b';
+            else if ((duration >= 1200) && (duration < 1400))
+                ch = 'c';
+            printf("RX %c %lli %lli %lli %i\n", ch, e.t, duration, 5*(duration/5), !e.v);
 
             if (idx < 499)
             {

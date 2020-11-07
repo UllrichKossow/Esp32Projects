@@ -1,8 +1,6 @@
 #ifndef RFSWITCH_H
 #define RFSWITCH_H
 
-#include <ctime>
-
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -23,7 +21,7 @@ private:
 
     struct ioEvent
     {
-        timespec t;
+        int64_t t;
         int v;
     };
 

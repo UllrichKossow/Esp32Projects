@@ -7,6 +7,7 @@
 #include "freertos/task.h"
 
 #include "esp_log.h"
+#include "esp_timer.h"
 
 #include "RfSwitch.h"
 #include "Schaltuhr.h"
@@ -18,6 +19,7 @@ extern void sync_time();
 
 void init()
 {
+    esp_timer_init();
     sync_time();
 }
 
@@ -32,7 +34,7 @@ void loop()
         clock_gettime(CLOCK_REALTIME, &now_rt);
         ESP_LOGI(TAG, "t=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
 
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(((now_rt.tv_nsec > 10000000) ? 999 : 1000) / portTICK_PERIOD_MS);
     }
 }
 
