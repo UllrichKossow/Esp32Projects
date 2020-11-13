@@ -38,16 +38,14 @@ void loop()
     int n = 0;
     while (true)
     {
+        gpio_set_level(GPIO_NUM_4, n & 1);
+        ++n;
+
         timespec now_rt;
         clock_gettime(CLOCK_REALTIME, &now_rt);
         ESP_LOGI(TAG, "t=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
 
         vTaskDelay(((now_rt.tv_nsec > 10000000) ? 999 : 1000) / portTICK_PERIOD_MS);
-        if (n < 16)
-        {
-            gpio_set_level(GPIO_NUM_4, n & 1);
-            ++n;
-        }
     }
 }
 

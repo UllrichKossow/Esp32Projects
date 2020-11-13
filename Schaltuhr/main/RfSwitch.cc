@@ -57,17 +57,19 @@ void RfSwitch::RxTask()
             char ch = '.';
             if ((duration >= 10000) && (duration < 11000))
                 ch = 'S';
-            else if ((duration >= 2700) && (duration < 2800))
+            else if ((duration >= 2600) && (duration < 2800))
                 ch = 's';
-            else if ((duration >= 220) && (duration < 250))
-                ch = 'a';
-            else if ((duration >= 250) && (duration < 300))
-                ch = 'b';
-            else if ((duration >= 300) && (duration < 330))
-                ch = 'b';
             else if ((duration >= 1200) && (duration < 1400))
+                ch = 'a';
+            else if ((duration >= 190) && (duration < 205))
+                ch = 'b';
+            else if ((duration >= 220) && (duration < 250))
                 ch = 'c';
-            printf("RX %c %lli %lli %lli %i\n", ch, e.t, duration, 5*(duration/5), !e.v);
+            else if ((duration >= 250) && (duration < 300))
+                ch = 'd';
+            else if ((duration >= 300) && (duration < 330))
+                ch = 'd';
+            printf("RX %lli %lli %lli %c %i\n", e.t, duration, 5*(duration/5), ch, !e.v);
 
             if (idx < 499)
             {
