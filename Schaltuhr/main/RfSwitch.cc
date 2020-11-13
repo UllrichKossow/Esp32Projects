@@ -40,7 +40,8 @@ void RfSwitch::Interrupt()
 void RfSwitch::RxTask()
 {
     int64_t last_t = 0;
-    char *line = new char[500];
+    const size_t LineLength = 1000;
+    char *line = new char[LineLength];
     int idx = 0;
     while (true)
     {
@@ -55,7 +56,7 @@ void RfSwitch::RxTask()
             int64_t duration = e.t - last_t;
             last_t = e.t;
             char ch = '.';
-            if ((duration >= 10000) && (duration < 11000))
+            if ((duration >= 10000))// && (duration < 11000))
                 ch = 'S';
             else if ((duration >= 2600) && (duration < 2800))
                 ch = 's';
@@ -71,18 +72,16 @@ void RfSwitch::RxTask()
                 ch = 'd';
             printf("RX %lli %lli %lli %c %i\n", e.t, duration, 5*(duration/5), ch, !e.v);
 
-            if (idx < 499)
+            if (idx < LineLength-1)
             {
                 if (ch == 'S')
                 {
                     line[idx++] = '\0';
-                    if (idx > 1)
-                    {
-                        printf("Code %s\n", line);
-                        idx = 0;
-                    }
+                    printf("Code %s\n", line);
+                    idx = 0;
                 }
                 line[idx++] = ch;
+                line[idx++] = e.v ? '0' : '1';
             }
         }
     }
