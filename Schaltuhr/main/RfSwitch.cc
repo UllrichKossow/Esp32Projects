@@ -1,5 +1,8 @@
 #include "RfSwitch.h"
 
+
+#include <cstring>
+
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "driver/gpio.h"
@@ -62,14 +65,8 @@ void RfSwitch::RxTask()
                 ch = 's';
             else if ((duration >= 1200) && (duration < 1400))
                 ch = 'a';
-            else if ((duration >= 190) && (duration < 205))
+            else if ((duration >= 190) && (duration < 330))
                 ch = 'b';
-            else if ((duration >= 220) && (duration < 250))
-                ch = 'c';
-            else if ((duration >= 250) && (duration < 300))
-                ch = 'd';
-            else if ((duration >= 300) && (duration < 330))
-                ch = 'd';
             printf("RX %lli %lli %lli %c %i\n", e.t, duration, 5*(duration/5), ch, !e.v);
 
             if (idx < LineLength-1)
@@ -77,7 +74,9 @@ void RfSwitch::RxTask()
                 if (ch == 'S')
                 {
                     line[idx++] = '\0';
-                    printf("Code %s\n", line);
+                    uint32_t code;
+                    bool ok = decode_sequence(line, code);
+                    printf("Code %s %s %i\n", line, ok ? "ok" : "fail", code);
                     idx = 0;
                 }
                 line[idx++] = ch;
@@ -100,4 +99,24 @@ void RfSwitch::setup_gpio()
     xTaskCreate(isr_task, "isr_task", 2048, this, 10, &m_rxTask);
     gpio_install_isr_service(0);
     gpio_isr_handler_add(GPIO_NUM_5, isr_callback, this);
+}
+
+bool RfSwitch::decode_sequence(const char *line, uint32_t &code)
+{
+    code = 0;
+    if (strncmp(line, "S0a1s0a1", 8) != 0)
+    {
+        return false;
+    }
+    const char *p = line + 8;
+    int bit = 0;
+    while (strlen(p) >= 2)
+    {
+        if (*p == '.')
+        {
+            return false;
+        }
+        p += 2;
+    }
+    return true;
 }

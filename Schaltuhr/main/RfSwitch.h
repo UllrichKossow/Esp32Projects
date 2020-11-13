@@ -18,6 +18,7 @@ public:
 
 private:
     void setup_gpio();
+    bool decode_sequence(const char *line, uint32_t &code);
 
     struct ioEvent
     {
