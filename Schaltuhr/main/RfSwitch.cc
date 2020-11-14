@@ -104,7 +104,7 @@ void RfSwitch::setup_gpio()
 bool RfSwitch::decode_sequence(const char *line, uint32_t &code)
 {
     code = 0;
-    if (strncmp(line, "S0a1s0a1", 8) != 0)
+    if (strncmp(line, "S0b1s0b1", 8) != 0)
     {
         return false;
     }
@@ -116,6 +116,7 @@ bool RfSwitch::decode_sequence(const char *line, uint32_t &code)
         {
             return false;
         }
+        char *pos = strstr(p+2, "a0");
         p += 2;
     }
     return true;
