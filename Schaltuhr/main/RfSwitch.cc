@@ -109,15 +109,28 @@ bool RfSwitch::decode_sequence(const char *line, uint32_t &code)
         return false;
     }
     const char *p = line + 8;
-    int bit = 0;
-    while (strlen(p) >= 2)
+    int bits = 0;
+    while ((p != NULL) && (strlen(p) >= 2))
     {
         if (*p == '.')
         {
             return false;
         }
-        char *pos = strstr(p+2, "a0");
-        p += 2;
+        char *pos = strstr(p + 2, "a0");
+        int len = 0;
+        if (pos)
+        {
+            len = pos - p;
+        } else
+        {
+            len = strlen(p);
+        }
+        p = pos;
+        int pulse = (len - 2) / 2;
+        ++bits;
+        code <<= 1;
+        if (pulse == 3)
+            code |= 1
     }
     return true;
 }
