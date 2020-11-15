@@ -5,6 +5,7 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 
+#include <string>
 
 class RfSwitch
 {
@@ -18,7 +19,10 @@ public:
 
 private:
     void setup_gpio();
-    bool decode_sequence(const char *line, uint32_t &code);
+    bool decode_sequence(const char *line, std::string &code);
+
+    void send_pulse(int t_pulse, int t_pause, int count = 1);
+    void send_pattern(const std::string &pattern, int count = 1);
 
     struct ioEvent
     {
