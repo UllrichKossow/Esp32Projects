@@ -21,10 +21,11 @@ public:
 
 private:
     void setup_gpio();
-    bool decode_sequence(const char *line, std::string &code);
+    bool decode_sequence(const char *line, uint32_t &code);
 
-    void send_pulse(int t_pulse, int t_pause, int count = 1);
-    void send_pattern(const std::string &pattern, int count = 1);
+    void send_pulse(int t_pulse, int t_pause);
+    void send_bit(bool b);
+    void send_word(const uint32_t data, int count = 1);
 
     struct ioEvent
     {

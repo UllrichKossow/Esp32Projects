@@ -23,9 +23,9 @@ for f in log*.txt; do
 	esac
 	n=$(($n + 1))
         if [ -f $newname ]; then
-            rm $newname
+            echo $newname
         fi
-	mv $f $newname	
+#	mv $f $newname	
 done
 for f in o*.txt; do
 	grep Code <$f |sed "s/a0/\na0/g"> code-$f

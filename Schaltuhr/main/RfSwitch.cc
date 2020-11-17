@@ -35,18 +35,10 @@ void RfSwitch::StartSniffing()
 
 void RfSwitch::Switch(bool on)
 {
-    std::string on_1 =  "S35313351335151333333513353133333";
-    std::string off_1 = "S35313351335151333333513353313333";
-
+    uint32_t d = (12345678 << 6) | 1;
     if (on)
-    {
-        send_pattern(on_1, 6);
-    }
-    else
-
-    {
-        send_pattern(off_1, 6);
-    }
+        d |= 1 << 4;
+    send_word(d,8);
 }
 
 
@@ -93,9 +85,9 @@ void RfSwitch::RxTask()
                 if (ch == 'S')
                 {
                     line[idx++] = '\0';
-                    std::string code;
+                    uint32_t code;
                     bool ok = decode_sequence(line, code);
-                    printf("Code %s %s %s\n", line, ok ? "ok" : "fail", code.c_str());
+                    printf("Code %s %s %08x\n", line, ok ? "ok" : "fail", code);
                     idx = 0;
                 }
                 line[idx++] = ch;
@@ -121,96 +113,75 @@ void RfSwitch::setup_gpio()
     gpio_isr_handler_add(GPIO_NUM_5, isr_callback, this);
 }
 
-
-bool RfSwitch::decode_sequence(const char *line, std::string &code)
+//b1s0
+//b1a0b1b0 b1a0b1b0 b1b0b1a0 b1b0b1a0 b1a0b1b0 b1a0b1b0 b1a0b1b0 b1b0b1a0
+//b1a0b1b0 b1a0b1b0 b1a0b1b0 b1b0b1a0 b1a0b1b0 b1b0b1a0 b1a0b1b0 b1a0b1b0
+//b1a0b1b0 b1a0b1b0 b1a0b1b0 b1a0b1b0 b1a0b1b0 b1b0b1a0 b1a0b1b0 b1a0b1b0
+//b1a0b1b0 b1b0b1a0 b1b0b1a0 b1a0b1b0 b1a0b1b0 b1a0b1b0 b1a0b1b0 b1a0b1b0 b1S0
+bool RfSwitch::decode_sequence(const char *line, uint32_t &code)
 {
     if (strncmp(line, "S0b1s0b1", 8) != 0)
     {
         return false;
     }
-    code.append("S");
-    const char *p = line + 8;
-    int bits = 0;
-    while ((p != NULL) && (strlen(p) >= 2))
+    if (strlen(line) != (2 * (4 + 32 * 8 + 4)))
     {
-        if (*p == '.')
-        {
-            return false;
-        }
-        char *pos = strstr(p + 2, "a0");
-        int len = 0;
-        if (pos)
-        {
-            len = pos - p;
-        } else
-        {
-            len = strlen(p);
-        }
-        p = pos;
-        int pulse = (len - 2) / 2;
-        switch (pulse)
-        {
-        case 1:
-            code.append("1");
-            break;
-        case 3:
-            code.append("3");
-            break;
-        case 5:
-            code.append("5");
-            break;
-        default:
-            code.append(".");
-            break;
-        }
-
+        return false;
     }
+    const char *p = line + 8;
+
+    for (int i = 0; i < 32; ++i)
+    {
+        code <<= 1;
+        if (p[8 * i + 2] == 'a')
+        {
+            code |= 1;
+        }
+    }
+
     return true;
 }
 
 
-void RfSwitch::send_pulse(int t_pulse, int t_pause, int count)
+void RfSwitch::send_pulse(int t_pulse, int t_pause)
 {
-    while (count-- > 0)
-    {
-        int64_t t = esp_timer_get_time();
-        gpio_set_level(GPIO_NUM_4, 0);
-        while (esp_timer_get_time() < t + t_pulse)
-            ;
+    int64_t t = esp_timer_get_time();
+    gpio_set_level(GPIO_NUM_4, 1);
+    while (esp_timer_get_time() < t + t_pulse)
+        ;
 
-        t = esp_timer_get_time();
-        gpio_set_level(GPIO_NUM_4, 1);
-        while (esp_timer_get_time() < t + t_pause)
-            ;
+    t = esp_timer_get_time();
+    gpio_set_level(GPIO_NUM_4, 0);
+    while (esp_timer_get_time() < t + t_pause)
+        ;
+}
+
+void RfSwitch::send_bit(bool b)
+{
+    if (b)
+    {
+        send_pulse(280, 1200);
+        send_pulse(280, 280);
+    }
+    else
+    {
+        send_pulse(280, 280);
+        send_pulse(280, 1200);
     }
 }
 
 
-void RfSwitch::send_pattern(const std::string &pattern, int count)
+void RfSwitch::send_word(const uint32_t data, int count)
 {
     while (count-- > 0)
     {
-        for (size_t i = 0; i < pattern.length(); ++i)
+        uint32_t out = data;
+        send_pulse(280, 2800);
+        for (int i = 0; i < 32; ++i)
         {
-            switch (pattern[i])
-            {
-            case 'S':
-                send_pulse(10000, 270);
-                send_pulse(2700, 270);
-                break;
-            case '1':
-                send_pulse(1200, 270);
-                send_pulse(270, 270, 1);
-                break;
-            case '3':
-                send_pulse(1200, 300);
-                send_pulse(270, 270, 3);
-                break;
-            case '5':
-                send_pulse(1200, 270);
-                send_pulse(270, 270, 5);
-                break;
-            }
+            send_bit(out & 0x8000000);
+            out <<= 1;
         }
+        send_pulse(280,10000);
     }
 }

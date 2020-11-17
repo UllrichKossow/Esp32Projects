@@ -28,7 +28,7 @@ void init()
 void loop()
 {
     RfSwitch r;
-    r.StartSniffing();
+    //r.StartSniffing();
 
     gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT);
     gpio_set_drive_capability(GPIO_NUM_4, GPIO_DRIVE_CAP_0 );
@@ -38,7 +38,6 @@ void loop()
     int n = 0;
     while (true)
     {
-        //gpio_set_level(GPIO_NUM_4, n & 1);
         ++n;
 
         timespec now_rt;
@@ -47,7 +46,7 @@ void loop()
 
         vTaskDelay(((now_rt.tv_nsec > 10000000) ? 999 : 1000) / portTICK_PERIOD_MS);
 
-        //r.Switch((n & 2) != 0);
+        r.Switch((n & 2) != 0);
     }
 }
 
