@@ -17,6 +17,8 @@ public:
     void Interrupt();
     void RxTask();
 
+    void Switch(bool on);
+
 private:
     void setup_gpio();
     bool decode_sequence(const char *line, std::string &code);

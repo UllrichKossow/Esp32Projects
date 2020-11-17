@@ -33,6 +33,22 @@ void RfSwitch::StartSniffing()
     setup_gpio();
 }
 
+void RfSwitch::Switch(bool on)
+{
+    std::string on_1 =  "S35313351335151333333513353133333";
+    std::string off_1 = "S35313351335151333333513353313333";
+
+    if (on)
+    {
+        send_pattern(on_1, 6);
+    }
+    else
+
+    {
+        send_pattern(off_1, 6);
+    }
+}
+
 
 void RfSwitch::Interrupt()
 {
@@ -164,7 +180,7 @@ void RfSwitch::send_pulse(int t_pulse, int t_pause, int count)
 
         t = esp_timer_get_time();
         gpio_set_level(GPIO_NUM_4, 1);
-        while (esp_timer_get_time() < t + t_pulse)
+        while (esp_timer_get_time() < t + t_pause)
             ;
     }
 }
@@ -179,20 +195,20 @@ void RfSwitch::send_pattern(const std::string &pattern, int count)
             switch (pattern[i])
             {
             case 'S':
-                send_pulse(10000, 300);
-                send_pulse(2700, 300);
+                send_pulse(10000, 270);
+                send_pulse(2700, 270);
                 break;
             case '1':
-                send_pulse(1200, 300);
-                send_pulse(300, 300, 1);
+                send_pulse(1200, 270);
+                send_pulse(270, 270, 1);
                 break;
             case '3':
                 send_pulse(1200, 300);
-                send_pulse(300, 300, 3);
+                send_pulse(270, 270, 3);
                 break;
             case '5':
-                send_pulse(1200, 300);
-                send_pulse(300, 300, 5);
+                send_pulse(1200, 270);
+                send_pulse(270, 270, 5);
                 break;
             }
         }
