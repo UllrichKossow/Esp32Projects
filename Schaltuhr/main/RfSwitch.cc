@@ -35,9 +35,9 @@ void RfSwitch::StartSniffing()
 
 void RfSwitch::Switch(bool on)
 {
-    uint32_t d = (12345678 << 6) | 1;
-    if (on)
-        d |= 1 << 4;
+    ESP_LOGI(TAG, "Switch %s", on ? "on" : "off");
+    uint32_t d = on ? 0xceebfb9f : 0xceebfb8f;
+
     send_word(d,8);
 }
 
@@ -78,7 +78,7 @@ void RfSwitch::RxTask()
                 ch = 'a';
             else if ((duration >= 190) && (duration < 330))
                 ch = 'b';
-            printf("RX %lli %lli %lli %c %i\n", e.t, duration, 5*(duration/5), ch, !e.v);
+            //printf("RX %lli %lli %lli %c %i\n", e.t, duration, 5*(duration/5), ch, !e.v);
 
             if (idx < LineLength-1)
             {
@@ -87,7 +87,7 @@ void RfSwitch::RxTask()
                     line[idx++] = '\0';
                     uint32_t code;
                     bool ok = decode_sequence(line, code);
-                    printf("Code %s %s %08x\n", line, ok ? "ok" : "fail", code);
+                    printf("Code %s %08x\n", ok ? "ok" : "fail", code);
                     idx = 0;
                 }
                 line[idx++] = ch;
@@ -124,11 +124,13 @@ bool RfSwitch::decode_sequence(const char *line, uint32_t &code)
     {
         return false;
     }
+#if 0
     if (strlen(line) != (2 * (4 + 32 * 8 + 4)))
     {
         return false;
     }
-    const char *p = line + 8;
+#endif
+    const char *p = line + 6;
 
     for (int i = 0; i < 32; ++i)
     {
@@ -179,7 +181,7 @@ void RfSwitch::send_word(const uint32_t data, int count)
         send_pulse(280, 2800);
         for (int i = 0; i < 32; ++i)
         {
-            send_bit(out & 0x8000000);
+            send_bit(out & 0x80000000);
             out <<= 1;
         }
         send_pulse(280,10000);
