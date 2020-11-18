@@ -8,15 +8,32 @@
 
 #include "esp_log.h"
 #include "esp_timer.h"
+#include "esp_sleep.h"
+#include "esp_pm.h"
+#include "esp32/clk.h"
 
 
 #include "RfSwitch.h"
-#include "Schaltuhr.h"
+#include "TimeSwitch.h"
 
 static const char* TAG = "app_main";
 
 
 extern void sync_time();
+
+
+void light_sleep_enable(void)
+{
+    int cur_freq_mhz = esp_clk_cpu_freq() / 1000000;
+    int xtal_freq = (int) rtc_clk_xtal_freq_get();
+
+    const esp_pm_config_esp32_t pm_config = {
+        .max_freq_mhz = cur_freq_mhz,
+        .min_freq_mhz = xtal_freq,
+        .light_sleep_enable = true
+    };
+    ESP_ERROR_CHECK( esp_pm_configure(&pm_config) );
+}
 
 void init()
 {
@@ -26,11 +43,14 @@ void init()
 
 void loop()
 {
+#if 0
     RfSwitch r;
     r.Switch(false);
     vTaskDelay(10000 / portTICK_PERIOD_MS);
-    //r.StartSniffing();
-
+    r.StartSniffing();
+#endif
+    TimeSwitch s;
+    vTaskDelay(10000 / portTICK_PERIOD_MS);
 
 
     int n = 0;
@@ -44,7 +64,7 @@ void loop()
 
         vTaskDelay(((now_rt.tv_nsec > 10000000) ? 999 : 1000) / portTICK_PERIOD_MS);
 
-        r.ProcessProgramm();
+        s.ProcessProgramm();
     }
 }
 

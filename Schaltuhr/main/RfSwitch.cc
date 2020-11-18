@@ -51,7 +51,6 @@ void RfSwitch::ProcessProgramm()
     tm timeinfo;
 
     time(&now);
-    // Set timezone to China Standard Time
     setenv("TZ", "UTC+1", 1);
     tzset();
 
