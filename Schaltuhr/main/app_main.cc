@@ -71,6 +71,7 @@ void loop()
 extern "C" void app_main(void);
 void app_main(void)
 {
+    light_sleep_enable();
     init();
     while (true)
     {
