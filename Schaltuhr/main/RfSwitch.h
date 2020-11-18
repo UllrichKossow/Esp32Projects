@@ -18,6 +18,7 @@ public:
     void RxTask();
 
     void Switch(bool on);
+    void ProcessProgramm();
 
 private:
     void setup_gpio();
@@ -36,6 +37,7 @@ private:
 private:
     TaskHandle_t m_rxTask;
     xQueueHandle m_rxQueue;
+    bool m_currentState;
 };
 
 #endif // RFSWITCH_H

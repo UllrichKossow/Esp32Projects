@@ -23,8 +23,12 @@ static void isr_task(void *arg)
 
 
 RfSwitch::RfSwitch()
+    : m_currentState(false)
 {
-
+    gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT);
+    gpio_set_drive_capability(GPIO_NUM_4, GPIO_DRIVE_CAP_0 );
+    gpio_set_level(GPIO_NUM_4, 1);
+    gpio_intr_disable(GPIO_NUM_4);
 }
 
 
@@ -41,6 +45,40 @@ void RfSwitch::Switch(bool on)
     send_word(d,8);
 }
 
+void RfSwitch::ProcessProgramm()
+{
+    time_t now;
+    tm timeinfo;
+
+    time(&now);
+    // Set timezone to China Standard Time
+    setenv("TZ", "UTC+1", 1);
+    tzset();
+
+    localtime_r(&now, &timeinfo);
+
+    bool on = (timeinfo.tm_hour >= 8) && (timeinfo.tm_hour < 20);
+    if (on != m_currentState)
+    {
+        m_currentState = on;
+        if (on)
+        {
+            Switch(true);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            Switch(false);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            Switch(true);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            Switch(false);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            Switch(true);
+        }
+        else
+        {
+            Switch(false);
+        }
+    }
+}
 
 void RfSwitch::Interrupt()
 {

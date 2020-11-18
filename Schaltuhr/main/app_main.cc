@@ -9,7 +9,6 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 
-#include "driver/gpio.h"
 
 #include "RfSwitch.h"
 #include "Schaltuhr.h"
@@ -28,12 +27,11 @@ void init()
 void loop()
 {
     RfSwitch r;
+    r.Switch(false);
+    vTaskDelay(10000 / portTICK_PERIOD_MS);
     //r.StartSniffing();
 
-    gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT);
-    gpio_set_drive_capability(GPIO_NUM_4, GPIO_DRIVE_CAP_0 );
-    gpio_set_level(GPIO_NUM_4, 1);
-    gpio_intr_disable(GPIO_NUM_4);
+
 
     int n = 0;
     while (true)
@@ -46,7 +44,7 @@ void loop()
 
         vTaskDelay(((now_rt.tv_nsec > 10000000) ? 999 : 1000) / portTICK_PERIOD_MS);
 
-        r.Switch((n & 2) != 0);
+        r.ProcessProgramm();
     }
 }
 
