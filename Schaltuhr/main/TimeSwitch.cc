@@ -13,6 +13,8 @@ static const char *TAG = "TimeSwitch";
 TimeSwitch::TimeSwitch()
     : m_currentState(false)
 {
+    setenv("TZ", "UTC-1", 1);
+    tzset();
     Switch(false);
 }
 
@@ -28,15 +30,12 @@ void TimeSwitch::ProcessProgramm()
     tm timeinfo;
 
     time(&now);
-    setenv("TZ", "UTC-1", 1);
-    tzset();
-
     localtime_r(&now, &timeinfo);
-    ESP_LOGI(TAG, "%02i:%02i:%02i", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
 
     bool on = (timeinfo.tm_hour >= 8) && (timeinfo.tm_hour < 20);
     if (on != m_currentState)
     {
+        ESP_LOGI(TAG, "%02i:%02i:%02i", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
         m_currentState = on;
         if (on)
         {

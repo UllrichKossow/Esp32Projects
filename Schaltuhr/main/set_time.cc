@@ -71,8 +71,8 @@ static void obtain_time(void)
     time(&now);
     localtime_r(&now, &timeinfo);
     ESP_LOGI(TAG, "sntp_get_sync_interval()=%i", sntp_get_sync_interval());
-    sntp_stop();
-    example_disconnect();    
+    //sntp_stop();
+    //example_disconnect();
 }
 
 

@@ -11,7 +11,7 @@
 #include "esp_sleep.h"
 #include "esp_pm.h"
 #include "esp32/clk.h"
-
+#include "driver/gpio.h"
 
 #include "RfSwitch.h"
 #include "TimeSwitch.h"
@@ -20,7 +20,6 @@ static const char* TAG = "app_main";
 
 
 extern void sync_time();
-
 
 void light_sleep_enable(void)
 {
@@ -37,8 +36,18 @@ void light_sleep_enable(void)
 
 void init()
 {
+    gpio_set_direction(GPIO_NUM_5, GPIO_MODE_OUTPUT);
+    gpio_set_drive_capability(GPIO_NUM_5, GPIO_DRIVE_CAP_DEFAULT);
+    gpio_set_level(GPIO_NUM_5, 0);
     esp_timer_init();
-    sync_time();
+    sync_time();    
+    gpio_set_level(GPIO_NUM_5, 1);
+}
+
+void timer_callback(void *arg)
+{
+    TimeSwitch *s = reinterpret_cast<TimeSwitch*>(arg);
+    s->ProcessProgramm();
 }
 
 void loop()
@@ -52,19 +61,23 @@ void loop()
     TimeSwitch s;
     vTaskDelay(10000 / portTICK_PERIOD_MS);
 
+    esp_timer_init();
+    esp_timer_create_args_t create_args = {
+        .callback = timer_callback,
+        .arg = &s,
+        .dispatch_method = ESP_TIMER_TASK,
+        .name = "TimeSwitch"
+    };
+    esp_timer_handle_t timer;
+    esp_timer_create(&create_args, &timer);
+    esp_timer_start_periodic(timer, 10*1000*1000);
 
-    int n = 0;
     while (true)
     {
-        ++n;
-
-        timespec now_rt;
-        clock_gettime(CLOCK_REALTIME, &now_rt);
-        ESP_LOGI(TAG, "t=%li %li", now_rt.tv_sec, now_rt.tv_nsec);
-
-        vTaskDelay(((now_rt.tv_nsec > 10000000) ? 999 : 1000) / portTICK_PERIOD_MS);
-
-        s.ProcessProgramm();
+        gpio_set_level(GPIO_NUM_5, 0);
+        vTaskDelay(200 / portTICK_PERIOD_MS);
+        gpio_set_level(GPIO_NUM_5, 1);
+        vTaskDelay(2800 / portTICK_PERIOD_MS);
     }
 }
 
