@@ -134,6 +134,7 @@ esp_err_t example_connect(void)
     {
         return ESP_ERR_INVALID_STATE;
     }
+
     start();
     ESP_ERROR_CHECK(esp_register_shutdown_handler(&stop));
     ESP_LOGI(TAG, "Waiting for IP(s)");
@@ -198,6 +199,36 @@ static void on_wifi_connect(void *esp_netif, esp_event_base_t event_base,
 
 #endif // CONFIG_EXAMPLE_CONNECT_IPV6
 
+static void set_hostname(esp_netif_t* netif)
+{
+    uint8_t mac[6];
+    ESP_ERROR_CHECK(esp_base_mac_addr_get(mac));
+    char mac_str[32];
+    char calc_hostname[32];
+
+    snprintf(mac_str, 32, MACSTR, MAC2STR(mac));
+    const char *hostname;
+    if (strcmp(mac_str, "24:6f:28:96:a5:68") == 0)
+    {
+        hostname = "esp32-01";
+    }
+    else if (strcmp(mac_str, "24:62:ab:f2:31:bc") == 0)
+    {
+        hostname = "esp32-02";
+    }
+    else if (strcmp(mac_str, "24:62:ab:f3:80:a0") == 0)
+    {
+        hostname = "esp32-03";
+    }
+    else
+    {
+        snprintf(calc_hostname, 32, "esp32-%02x%02x%02x%02x%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+        hostname = calc_hostname;
+    }
+    ESP_LOGI(TAG, "hostname for %s is %s", mac_str, hostname);
+    ESP_ERROR_CHECK(esp_netif_set_hostname(netif, hostname));
+}
+
 static esp_netif_t* wifi_start(void)
 {
     char *desc;
@@ -210,7 +241,8 @@ static esp_netif_t* wifi_start(void)
     asprintf(&desc, "%s: %s", TAG, esp_netif_config.if_desc);
     esp_netif_config.if_desc = desc;
     esp_netif_config.route_prio = 128;
-    esp_netif_t *netif = esp_netif_create_wifi(WIFI_IF_STA, &esp_netif_config);
+    esp_netif_t *netif = esp_netif_create_wifi(WIFI_IF_STA, &esp_netif_config);    
+    set_hostname(netif);
     free(desc);
     esp_wifi_set_default_wifi_sta_handlers();
 
