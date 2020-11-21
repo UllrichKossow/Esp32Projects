@@ -128,7 +128,7 @@ static void on_got_ipv6(void *arg, esp_event_base_t event_base,
 
 #endif // CONFIG_EXAMPLE_CONNECT_IPV6
 
-esp_err_t example_connect(void)
+esp_err_t my_wifi_connect(void)
 {
     if (s_semph_get_ip_addrs != NULL)
     {
@@ -166,7 +166,7 @@ esp_err_t example_connect(void)
     return ESP_OK;
 }
 
-esp_err_t example_disconnect(void)
+esp_err_t my_wifi_disconnect(void)
 {
     if (s_semph_get_ip_addrs == NULL) {
         return ESP_ERR_INVALID_STATE;
