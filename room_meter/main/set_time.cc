@@ -1,4 +1,4 @@
-            // -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*- 
+// -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*-
 /* LwIP SNTP example
 
    This example code is in the Public Domain (or CC0 licensed, at your option.)
@@ -71,8 +71,8 @@ static void obtain_time(void)
     time(&now);
     localtime_r(&now, &timeinfo);
     ESP_LOGI(TAG, "sntp_get_sync_interval()=%i", sntp_get_sync_interval());
-    sntp_stop();
-    my_wifi_disconnect();    
+    //sntp_stop();
+    //my_wifi_disconnect();
 }
 
 
