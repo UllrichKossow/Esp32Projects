@@ -44,10 +44,21 @@ void init()
     gpio_set_level(GPIO_NUM_5, 1);
 }
 
-void timer_callback(void *arg)
+void timer_callback_switch(void *arg)
 {
     TimeSwitch *s = reinterpret_cast<TimeSwitch*>(arg);
     s->ProcessProgramm();
+}
+
+void timer_callback_watch(void *arg)
+{
+    timespec now;
+    tm tm_info;
+    clock_gettime(CLOCK_REALTIME, &now);
+    localtime_r(&now.tv_sec, &tm_info);
+    char line[64];
+    strftime(line, 64, "%T", &tm_info); 
+    ESP_LOGI(TAG, "%s %li", line, now.tv_nsec);
 }
 
 void loop()
@@ -62,16 +73,37 @@ void loop()
     vTaskDelay(10000 / portTICK_PERIOD_MS);
 
     esp_timer_init();
-    esp_timer_create_args_t create_args = {
-        .callback = timer_callback,
+    esp_timer_create_args_t create_args_switch = {
+        .callback = timer_callback_switch,
         .arg = &s,
         .dispatch_method = ESP_TIMER_TASK,
         .name = "TimeSwitch"
     };
-    esp_timer_handle_t timer;
-    esp_timer_create(&create_args, &timer);
-    esp_timer_start_periodic(timer, 10*1000*1000);
+    
+    esp_timer_handle_t timer_for_switch;
+    esp_timer_create(&create_args_switch, &timer_for_switch);
+    esp_timer_start_periodic(timer_for_switch, 10*1000*1000);
 
+    esp_timer_create_args_t create_args_watch = {
+        .callback = timer_callback_watch,
+        .arg = NULL,
+        .dispatch_method = ESP_TIMER_TASK,
+        .name = "TimeWatch"
+    };
+
+    esp_timer_handle_t timer_for_watch;
+    esp_timer_create(&create_args_watch, &timer_for_watch);
+
+    // Sync for seconds change
+    timespec now, later;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    do
+    {
+	clock_gettime(CLOCK_MONOTONIC, &later);
+    } while (now.tv_sec == later.tv_sec);
+
+    //esp_timer_start_periodic(timer_for_watch, 1*1000*1000);
+    
     while (true)
     {
         gpio_set_level(GPIO_NUM_5, 0);
