@@ -36,26 +36,31 @@ void light_sleep_enable(void)
 
 void init()
 {
-    gpio_set_direction(GPIO_NUM_5, GPIO_MODE_OUTPUT);
-    gpio_set_drive_capability(GPIO_NUM_5, GPIO_DRIVE_CAP_DEFAULT);
-    gpio_set_level(GPIO_NUM_5, 0);
+    gpio_set_direction(GPIO_NUM_16, GPIO_MODE_OUTPUT);
+    gpio_set_drive_capability(GPIO_NUM_16, GPIO_DRIVE_CAP_DEFAULT);
+    gpio_set_direction(GPIO_NUM_17, GPIO_MODE_OUTPUT);
+    gpio_set_drive_capability(GPIO_NUM_17, GPIO_DRIVE_CAP_DEFAULT);
+    gpio_set_level(GPIO_NUM_17, 1);
+    
+    gpio_set_level(GPIO_NUM_16, 0);
     esp_timer_init();
     sync_time();    
-    gpio_set_level(GPIO_NUM_5, 1);
+    gpio_set_level(GPIO_NUM_16, 1);
 }
 
-void timer_callback_switch(void *arg)
+void timer_cb_slow(void *arg)
 {
     TimeSwitch *s = reinterpret_cast<TimeSwitch*>(arg);
     s->ProcessProgramm();
 }
 
-void timer_callback_watch(void *arg)
+void timer_cb_fast(void *arg)
 {
     timespec now;
     tm tm_info;
     clock_gettime(CLOCK_REALTIME, &now);
     localtime_r(&now.tv_sec, &tm_info);
+    gpio_set_level(GPIO_NUM_17, tm_info.tm_sec == 0 ? 0 : 1);
     char line[64];
     strftime(line, 64, "%T", &tm_info); 
     ESP_LOGI(TAG, "%s %li", line, now.tv_nsec);
@@ -73,42 +78,42 @@ void loop()
     vTaskDelay(10000 / portTICK_PERIOD_MS);
 
     esp_timer_init();
-    esp_timer_create_args_t create_args_switch = {
-        .callback = timer_callback_switch,
+    esp_timer_create_args_t create_args_slow = {
+        .callback = timer_cb_slow,
         .arg = &s,
         .dispatch_method = ESP_TIMER_TASK,
-        .name = "TimeSwitch"
+        .name = "TimerSlow"
     };
     
-    esp_timer_handle_t timer_for_switch;
-    esp_timer_create(&create_args_switch, &timer_for_switch);
-    esp_timer_start_periodic(timer_for_switch, 10*1000*1000);
+    esp_timer_handle_t timer_slow;
+    esp_timer_create(&create_args_slow, &timer_slow);
+    esp_timer_start_periodic(timer_slow, 10*1000*1000);
 
-    esp_timer_create_args_t create_args_watch = {
-        .callback = timer_callback_watch,
+    esp_timer_create_args_t create_args_fast = {
+        .callback = timer_cb_fast,
         .arg = NULL,
         .dispatch_method = ESP_TIMER_TASK,
-        .name = "TimeWatch"
+        .name = "TimerFast"
     };
 
-    esp_timer_handle_t timer_for_watch;
-    esp_timer_create(&create_args_watch, &timer_for_watch);
+    esp_timer_handle_t timer_fast;
+    esp_timer_create(&create_args_fast, &timer_fast);
 
     // Sync for seconds change
     timespec now, later;
-    clock_gettime(CLOCK_MONOTONIC, &now);
+    clock_gettime(CLOCK_REALTIME, &now);
     do
     {
-	clock_gettime(CLOCK_MONOTONIC, &later);
+	clock_gettime(CLOCK_REALTIME, &later);
     } while (now.tv_sec == later.tv_sec);
 
-    //esp_timer_start_periodic(timer_for_watch, 1*1000*1000);
+    esp_timer_start_periodic(timer_fast, 1*1000*1000);
     
     while (true)
     {
-        gpio_set_level(GPIO_NUM_5, 0);
+        gpio_set_level(GPIO_NUM_16, 0);
         vTaskDelay(200 / portTICK_PERIOD_MS);
-        gpio_set_level(GPIO_NUM_5, 1);
+        gpio_set_level(GPIO_NUM_16, 1);
         vTaskDelay(2800 / portTICK_PERIOD_MS);
     }
 }
@@ -116,7 +121,7 @@ void loop()
 extern "C" void app_main(void);
 void app_main(void)
 {
-    light_sleep_enable();
+//    light_sleep_enable();
     init();
     while (true)
     {
