@@ -6,6 +6,7 @@
 
 #include "Bme280Controller.h"
 #include "sh1106.h"
+#include "time_helper.h"
 
 
 #include "freertos/FreeRTOS.h"
@@ -116,7 +117,7 @@ void showStatistics(const string &title, const vector<double> values)
 
 
 //------------------------------------------------------------------------------------------
-void showSummary(size_t values, size_t cycles, time_t duration, uint32_t interval)
+void showSummary(size_t values, size_t cycles, const timespec &duration, uint32_t interval)
 {
     ostringstream s;
     struct timespec now_rt, now_mo;
@@ -151,7 +152,7 @@ void showSummary(size_t values, size_t cycles, time_t duration, uint32_t interva
     sh1106_print_line(line++, s.str().c_str());
 
     s.str("");
-    s << "Du " << duration << " sec.";
+    s << "Du " << timespec_to_string(duration);
     sh1106_print_line(line++, s.str().c_str());
 
     s.str("");
@@ -178,7 +179,7 @@ void loop()
         vTaskDelay(5000/portTICK_PERIOD_MS);
         if (b.getCounter() < 5)
         {
-            showSummary(0, 0, 0, 0);
+            showSummary(0, 0, {0,0}, 0);
             continue;
         }
         timespec d = b.getDuration();
@@ -188,7 +189,7 @@ void loop()
         switch (cycle)
         {
         case 0:
-            showSummary(b.getNumberOfValues(), b.getCounter(), d.tv_sec, b.getCurrentInterval());
+            showSummary(b.getNumberOfValues(), b.getCounter(), d, b.getCurrentInterval());
             break;
         case 1:
             transform(m.begin(), m.end(), back_inserter(plotData), mem_fn(&measure_t::temp));
@@ -241,7 +242,7 @@ void light_sleep_enable(void)
 extern "C" void app_main(void);
 void app_main()
 {
-    light_sleep_enable();
+    //light_sleep_enable();
     init();
     while (true)
     {

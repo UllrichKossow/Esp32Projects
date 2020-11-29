@@ -1,6 +1,7 @@
 // -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*-                                          
 #include "time_helper.h"
 #include <cstdint>
+#include <sstream>
 
 
 //------------------------------------------------------------------------------
@@ -65,7 +66,30 @@ int timespec_compare(const timespec &t1, const timespec &t2)
 }
 
 //------------------------------------------------------------------------------
-bool timespec_isNull(const timespec t)
+bool timespec_isNull(const timespec &t)
 {
     return (t.tv_sec == 0) && (t.tv_nsec == 0);
+}
+
+std::string timespec_to_string(timespec t)
+{
+    std::ostringstream s;
+    if (t.tv_sec >= 86400)
+    {
+        s << t.tv_sec / 86400 << "d";
+        t.tv_sec %= 86400;
+    }
+    if (t.tv_sec >= 3600)
+    {
+        s << t.tv_sec / 3600 << ":";
+        t.tv_sec %= 3600;
+    }
+    if (t.tv_sec >= 60)
+    {
+        s << t.tv_sec / 60 << ":";
+        t.tv_sec %= 60;
+    }
+    s << t.tv_sec;
+    
+    return s.str();
 }
