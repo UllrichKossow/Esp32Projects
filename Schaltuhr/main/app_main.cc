@@ -18,6 +18,8 @@
 
 static const char* TAG = "app_main";
 
+gpio_num_t OUT_1 = GPIO_NUM_16;
+gpio_num_t OUT_2 = GPIO_NUM_17;
 
 extern void sync_time();
 
@@ -31,21 +33,21 @@ void light_sleep_enable(void)
         .min_freq_mhz = xtal_freq,
         .light_sleep_enable = true
     };
-    ESP_ERROR_CHECK( esp_pm_configure(&pm_config) );
+    ESP_ERROR_CHECK( esp_pm_configure(&pm_config));
 }
 
 void init()
 {
-    gpio_set_direction(GPIO_NUM_16, GPIO_MODE_OUTPUT);
-    gpio_set_drive_capability(GPIO_NUM_16, GPIO_DRIVE_CAP_DEFAULT);
-    gpio_set_direction(GPIO_NUM_17, GPIO_MODE_OUTPUT);
-    gpio_set_drive_capability(GPIO_NUM_17, GPIO_DRIVE_CAP_DEFAULT);
-    gpio_set_level(GPIO_NUM_17, 1);
+    gpio_set_direction(OUT_1, GPIO_MODE_OUTPUT_OD );
+    gpio_set_drive_capability(OUT_1, GPIO_DRIVE_CAP_DEFAULT);
+    gpio_set_direction(OUT_2, GPIO_MODE_OUTPUT_OD );
+    gpio_set_drive_capability(OUT_2, GPIO_DRIVE_CAP_DEFAULT);
+    gpio_set_level(OUT_1, 1);
     
-    gpio_set_level(GPIO_NUM_16, 0);
+    gpio_set_level(OUT_2, 0);
     esp_timer_init();
     sync_time();    
-    gpio_set_level(GPIO_NUM_16, 1);
+    gpio_set_level(OUT_2, 1);
 }
 
 void timer_cb_slow(void *arg)
@@ -60,7 +62,8 @@ void timer_cb_fast(void *arg)
     tm tm_info;
     clock_gettime(CLOCK_REALTIME, &now);
     localtime_r(&now.tv_sec, &tm_info);
-    gpio_set_level(GPIO_NUM_17, tm_info.tm_sec == 0 ? 0 : 1);
+    gpio_set_level(OUT_1, tm_info.tm_sec == 0 ? 0 : 1);
+
     char line[64];
     strftime(line, 64, "%T", &tm_info); 
     ESP_LOGI(TAG, "%s %li", line, now.tv_nsec);
@@ -104,16 +107,17 @@ void loop()
     clock_gettime(CLOCK_REALTIME, &now);
     do
     {
-	clock_gettime(CLOCK_REALTIME, &later);
+        clock_gettime(CLOCK_REALTIME, &later);
     } while (now.tv_sec == later.tv_sec);
 
     esp_timer_start_periodic(timer_fast, 1*1000*1000);
     
     while (true)
     {
-        gpio_set_level(GPIO_NUM_16, 0);
+        gpio_set_level(OUT_2, 0);
         vTaskDelay(200 / portTICK_PERIOD_MS);
-        gpio_set_level(GPIO_NUM_16, 1);
+
+        gpio_set_level(OUT_2, 1);
         vTaskDelay(2800 / portTICK_PERIOD_MS);
     }
 }
@@ -121,7 +125,7 @@ void loop()
 extern "C" void app_main(void);
 void app_main(void)
 {
-//    light_sleep_enable();
+ //   light_sleep_enable();
     init();
     while (true)
     {
