@@ -24,9 +24,13 @@ using namespace std;
 
 static const char* TAG = "app_main";
 
-void sync_time(void);
+void sync_time();
 
+void init_touch()
+{
 
+}
+//------------------------------------------------------------------------------------------
 void init()
 {
     sh1106_init();
@@ -34,6 +38,7 @@ void init()
     sh1106_print_line(0, "Sync time...");
     sync_time();
     sh1106_print_line(0, "Sync time done.");
+    init_touch();
 }
 
 
@@ -242,7 +247,7 @@ void light_sleep_enable(void)
 extern "C" void app_main(void);
 void app_main()
 {
-    //light_sleep_enable();
+    light_sleep_enable();
     init();
     while (true)
     {
