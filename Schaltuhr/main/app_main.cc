@@ -11,15 +11,11 @@
 #include "esp_sleep.h"
 #include "esp_pm.h"
 #include "esp32/clk.h"
-#include "driver/gpio.h"
 
 #include "RfSwitch.h"
 #include "TimeSwitch.h"
 
 static const char* TAG = "app_main";
-
-gpio_num_t OUT_1 = GPIO_NUM_16;
-gpio_num_t OUT_2 = GPIO_NUM_17;
 
 extern void sync_time();
 
@@ -38,16 +34,8 @@ void light_sleep_enable(void)
 
 void init()
 {
-    gpio_set_direction(OUT_1, GPIO_MODE_OUTPUT_OD );
-    gpio_set_drive_capability(OUT_1, GPIO_DRIVE_CAP_DEFAULT);
-    gpio_set_direction(OUT_2, GPIO_MODE_OUTPUT_OD );
-    gpio_set_drive_capability(OUT_2, GPIO_DRIVE_CAP_DEFAULT);
-    gpio_set_level(OUT_1, 1);
-    
-    gpio_set_level(OUT_2, 0);
     esp_timer_init();
     sync_time();    
-    gpio_set_level(OUT_2, 1);
 }
 
 void timer_cb_slow(void *arg)
@@ -62,8 +50,6 @@ void timer_cb_fast(void *arg)
     tm tm_info;
     clock_gettime(CLOCK_REALTIME, &now);
     localtime_r(&now.tv_sec, &tm_info);
-    gpio_set_level(OUT_1, tm_info.tm_sec == 0 ? 0 : 1);
-
     char line[64];
     strftime(line, 64, "%T", &tm_info); 
     ESP_LOGI(TAG, "%s %li", line, now.tv_nsec);
@@ -114,18 +100,14 @@ void loop()
     
     while (true)
     {
-        gpio_set_level(OUT_2, 0);
-        vTaskDelay(200 / portTICK_PERIOD_MS);
-
-        gpio_set_level(OUT_2, 1);
-        vTaskDelay(2800 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 
 extern "C" void app_main(void);
 void app_main(void)
 {
- //   light_sleep_enable();
+    light_sleep_enable();
     init();
     while (true)
     {

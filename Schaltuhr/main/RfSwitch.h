@@ -5,6 +5,8 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 
+#include "driver/gpio.h"
+
 #include <string>
 
 class RfSwitch
@@ -38,6 +40,7 @@ private:
     TaskHandle_t m_rxTask;
     xQueueHandle m_rxQueue;
     bool m_currentState;
+    gpio_num_t m_tx_pin, m_rx_pin;
 };
 
 #endif // RFSWITCH_H

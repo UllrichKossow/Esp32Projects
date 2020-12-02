@@ -23,12 +23,12 @@ static void isr_task(void *arg)
 
 
 RfSwitch::RfSwitch()
-    : m_currentState(false)
+    : m_currentState(false), m_tx_pin(GPIO_NUM_4), m_rx_pin(GPIO_NUM_5)
 {
-    gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT);
-    gpio_set_drive_capability(GPIO_NUM_4, GPIO_DRIVE_CAP_0 );
-    gpio_set_level(GPIO_NUM_4, 1);
-    gpio_intr_disable(GPIO_NUM_4);
+    gpio_set_direction(m_tx_pin, GPIO_MODE_OUTPUT);
+    gpio_set_drive_capability(m_tx_pin, GPIO_DRIVE_CAP_0 );
+    gpio_set_level(m_tx_pin, 1);
+    gpio_intr_disable(m_tx_pin);
 }
 
 
@@ -83,7 +83,7 @@ void RfSwitch::Interrupt()
 {
     ioEvent e;
     e.t = esp_timer_get_time();
-    e.v = gpio_get_level(GPIO_NUM_5);
+    e.v = gpio_get_level(m_rx_pin);
     xQueueSendFromISR(m_rxQueue, &e, NULL);
 }
 
@@ -138,16 +138,16 @@ void RfSwitch::RxTask()
 void RfSwitch::setup_gpio()
 {
     //change gpio intrrupt type for one pin
-    gpio_set_direction(GPIO_NUM_5, GPIO_MODE_INPUT);
-    gpio_set_pull_mode(GPIO_NUM_5, GPIO_PULLUP_ONLY);
-    gpio_intr_disable(GPIO_NUM_5);
-    gpio_set_intr_type(GPIO_NUM_5 , GPIO_INTR_ANYEDGE);
-    gpio_intr_enable(GPIO_NUM_5);
+    gpio_set_direction(m_rx_pin, GPIO_MODE_INPUT);
+    gpio_set_pull_mode(m_rx_pin, GPIO_PULLUP_ONLY);
+    gpio_intr_disable(m_rx_pin);
+    gpio_set_intr_type(m_rx_pin , GPIO_INTR_ANYEDGE);
+    gpio_intr_enable(m_rx_pin);
 
     m_rxQueue = xQueueCreate(1000, sizeof(ioEvent));
     xTaskCreate(isr_task, "isr_task", 2048, this, 10, &m_rxTask);
     gpio_install_isr_service(0);
-    gpio_isr_handler_add(GPIO_NUM_5, isr_callback, this);
+    gpio_isr_handler_add(m_rx_pin, isr_callback, this);
 }
 
 //b1s0
@@ -185,12 +185,12 @@ bool RfSwitch::decode_sequence(const char *line, uint32_t &code)
 void RfSwitch::send_pulse(int t_pulse, int t_pause)
 {
     int64_t t = esp_timer_get_time();
-    gpio_set_level(GPIO_NUM_4, 1);
+    gpio_set_level(m_tx_pin, 1);
     while (esp_timer_get_time() < t + t_pulse)
         ;
 
     t = esp_timer_get_time();
-    gpio_set_level(GPIO_NUM_4, 0);
+    gpio_set_level(m_tx_pin, 0);
     while (esp_timer_get_time() < t + t_pause)
         ;
 }
