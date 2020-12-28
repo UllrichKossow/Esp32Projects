@@ -1,7 +1,9 @@
 // -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*-                                          
 
 #include "sh1106.h"
-#include <string.h>
+#include "Font.h"
+
+#include <cstring>
 
 #include "driver/gpio.h"
 #include "driver/i2c.h"
@@ -266,4 +268,11 @@ void sh1106_line(frame_buffer_t *fb, int x0, int y0, int x1, int y1)
             y0 += sy;
         } /* e_xy+e_y < 0 */
     }
+}
+
+
+void put(frame_buffer_t *fb,char ch, int x, int y)
+{
+    Font f;
+    f.put(fb, ch, x, y);
 }
