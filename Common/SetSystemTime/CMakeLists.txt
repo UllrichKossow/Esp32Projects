@@ -1,3 +1,3 @@
-idf_component_register(SRCS "set_time.cc"
-                    INCLUDE_DIRS "include"
+idf_component_register(SRCS SetSystemTime.cc
+                    INCLUDE_DIRS "."
 					REQUIRES nvs_flash WlanConnect)
