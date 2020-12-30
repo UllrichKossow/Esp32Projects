@@ -18,6 +18,7 @@
 
 #include "sdkconfig.h"
 #include "tm1637.h"
+#include "SetSystemTime.h"
 
 #define TAG "app"
 
@@ -41,17 +42,16 @@ void lcd_tm1637_task(void * arg)
 		int time_number = 100 * timeinfo.tm_hour + timeinfo.tm_min;
 
 		tm1637_set_number_lead_dot(lcd, time_number, true, timeinfo.tm_sec % 2 ? 0xFF : 0x00);
-		int64_t t = esp_timer_get_time();
+		//int64_t t = esp_timer_get_time();
 		//ESP_LOGI(TAG, "t=%lli", t);
 		vTaskDelay(1000 / portTICK_RATE_MS);
 	}
 }
 
 extern "C" void app_main();
-void sync_time();
 void app_main()
 {
-	sync_time();
+	sync_time(false);
 	xTaskCreate(&lcd_tm1637_task, "lcd_tm1637_task", 4096, NULL, 5, NULL);
 }
 

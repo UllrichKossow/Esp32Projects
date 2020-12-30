@@ -6,6 +6,7 @@
 
 #include "Bme280Controller.h"
 #include "sh1106.h"
+#include "SetSystemTime.h"
 #include "time_helper.h"
 
 
@@ -24,7 +25,6 @@ using namespace std;
 
 static const char* TAG = "app_main";
 
-void sync_time();
 
 void init_touch()
 {

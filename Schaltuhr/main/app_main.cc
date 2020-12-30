@@ -14,10 +14,10 @@
 
 #include "RfSwitch.h"
 #include "TimeSwitch.h"
+#include "SetSystemTime.h"
 
 static const char* TAG = "app_main";
 
-extern void sync_time();
 
 void light_sleep_enable(void)
 {

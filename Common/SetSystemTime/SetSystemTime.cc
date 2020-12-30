@@ -55,7 +55,7 @@ static void initialize_sntp(void)
 }
 
 
-static void obtain_time(void)
+static void obtain_time(bool keepSync)
 {
     initialize_sntp();
 
@@ -68,16 +68,23 @@ static void obtain_time(void)
         ESP_LOGI(TAG, "Waiting for system time to be set... (%d/%d)", retry, retry_count);
         vTaskDelay(2000 / portTICK_PERIOD_MS);
     }
-    time(&now);
-    localtime_r(&now, &timeinfo);
-    ESP_LOGI(TAG, "sntp_get_sync_interval()=%i", sntp_get_sync_interval());
-    //sntp_stop();
-    //my_wifi_disconnect();
+
+    if (keepSync)
+    {
+        time(&now);
+        localtime_r(&now, &timeinfo);
+        ESP_LOGI(TAG, "sntp_get_sync_interval()=%i", sntp_get_sync_interval());
+    }
+    else
+    {
+        sntp_stop();
+        my_wifi_disconnect();
+    }
 }
 
 
-void sync_time()
+void sync_time(bool keepSync)
 {
-    obtain_time();    
+    obtain_time(keepSync);    
 }
 
