@@ -83,7 +83,7 @@ static void user_delay_ms(uint32_t msek)
 
 
 Bme280Controller::Bme280Controller()
-    : m_cnt(0), m_maxSize(1024)
+    : m_cnt(0), m_maxSize(512)
 {
 }
 
