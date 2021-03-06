@@ -14,7 +14,9 @@ private:
     void Switch(bool state);
 
 private:
-    bool m_currentState;
+    enum bulb_state_t { bulb_off, bulb_on_warm, bulb_on_cold};
+    bulb_state_t m_currentState;
+
 
     RfSwitch m_rfSwitch;
 };

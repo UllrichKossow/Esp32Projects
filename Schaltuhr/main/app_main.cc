@@ -11,36 +11,40 @@
 #include "esp_sleep.h"
 #include "esp_pm.h"
 #include "esp32/clk.h"
+#include "driver/gpio.h"
+
 
 #include "RfSwitch.h"
 #include "TimeSwitch.h"
 #include "SetSystemTime.h"
 
-static const char* TAG = "app_main";
-
+static const char *TAG = "app_main";
 
 void light_sleep_enable(void)
 {
     int cur_freq_mhz = esp_clk_cpu_freq() / 1000000;
-    int xtal_freq = (int) rtc_clk_xtal_freq_get();
+    int xtal_freq = (int)rtc_clk_xtal_freq_get();
 
     const esp_pm_config_esp32_t pm_config = {
         .max_freq_mhz = cur_freq_mhz,
         .min_freq_mhz = xtal_freq,
-        .light_sleep_enable = true
-    };
-    ESP_ERROR_CHECK( esp_pm_configure(&pm_config));
+        .light_sleep_enable = true};
+    ESP_ERROR_CHECK(esp_pm_configure(&pm_config));
 }
 
 void init()
 {
     esp_timer_init();
-    sync_time();    
+    gpio_set_direction(GPIO_NUM_5, GPIO_MODE_OUTPUT);
+    gpio_set_drive_capability(GPIO_NUM_5, GPIO_DRIVE_CAP_DEFAULT);
+    gpio_set_level(GPIO_NUM_5, 0);
+
+    sync_time(true);
 }
 
 void timer_cb_slow(void *arg)
 {
-    TimeSwitch *s = reinterpret_cast<TimeSwitch*>(arg);
+    TimeSwitch *s = reinterpret_cast<TimeSwitch *>(arg);
     s->ProcessProgramm();
 }
 
@@ -51,8 +55,8 @@ void timer_cb_fast(void *arg)
     clock_gettime(CLOCK_REALTIME, &now);
     localtime_r(&now.tv_sec, &tm_info);
     char line[64];
-    strftime(line, 64, "%T", &tm_info); 
-    ESP_LOGI(TAG, "%s %li", line, now.tv_nsec);
+    strftime(line, 64, "%T", &tm_info);
+    ESP_LOGD(TAG, "%s %li", line, now.tv_nsec);
 }
 
 void loop()
@@ -71,19 +75,17 @@ void loop()
         .callback = timer_cb_slow,
         .arg = &s,
         .dispatch_method = ESP_TIMER_TASK,
-        .name = "TimerSlow"
-    };
-    
+        .name = "TimerSlow"};
+
     esp_timer_handle_t timer_slow;
     esp_timer_create(&create_args_slow, &timer_slow);
-    esp_timer_start_periodic(timer_slow, 10*1000*1000);
+    esp_timer_start_periodic(timer_slow, 10 * 1000 * 1000);
 
     esp_timer_create_args_t create_args_fast = {
         .callback = timer_cb_fast,
         .arg = NULL,
         .dispatch_method = ESP_TIMER_TASK,
-        .name = "TimerFast"
-    };
+        .name = "TimerFast"};
 
     esp_timer_handle_t timer_fast;
     esp_timer_create(&create_args_fast, &timer_fast);
@@ -96,11 +98,14 @@ void loop()
         clock_gettime(CLOCK_REALTIME, &later);
     } while (now.tv_sec == later.tv_sec);
 
-    esp_timer_start_periodic(timer_fast, 1*1000*1000);
-    
+    esp_timer_start_periodic(timer_fast, 1 * 1000 * 1000);
+
     while (true)
     {
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        gpio_set_level(GPIO_NUM_5, 1);
+        vTaskDelay(200 / portTICK_PERIOD_MS);
+        gpio_set_level(GPIO_NUM_5, 0);
+        vTaskDelay(2800 / portTICK_PERIOD_MS);
     }
 }
 
