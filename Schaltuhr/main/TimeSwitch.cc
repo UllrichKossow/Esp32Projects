@@ -72,6 +72,8 @@ void TimeSwitch::ProcessProgramm()
     {
         ESP_LOGI(TAG, "%02i:%02i:%02i", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
         m_currentState = calculated_state;
+        const int t_reset = 10000;
+        const int t_pulse = 500;
         switch (m_currentState)
         {
         case bulb_off:
@@ -81,16 +83,16 @@ void TimeSwitch::ProcessProgramm()
         case bulb_on_6k5:
         {
             Switch(false);
-            vTaskDelay(10000 / portTICK_PERIOD_MS);
+            vTaskDelay(t_reset / portTICK_PERIOD_MS);
 
             Switch(true);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            vTaskDelay(t_pulse / portTICK_PERIOD_MS);
             Switch(false);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            vTaskDelay(t_pulse / portTICK_PERIOD_MS);
             Switch(true);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            vTaskDelay(t_pulse / portTICK_PERIOD_MS);
             Switch(false);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            vTaskDelay(t_pulse / portTICK_PERIOD_MS);
             Switch(true);
             break;
         }
@@ -98,12 +100,12 @@ void TimeSwitch::ProcessProgramm()
         case bulb_on_4k0:
         {
             Switch(false);
-            vTaskDelay(10000 / portTICK_PERIOD_MS);
+            vTaskDelay(t_reset / portTICK_PERIOD_MS);
 
             Switch(true);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            vTaskDelay(t_pulse / portTICK_PERIOD_MS);
             Switch(false);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            vTaskDelay(t_pulse / portTICK_PERIOD_MS);
             Switch(true);
             break;
         }
@@ -111,7 +113,7 @@ void TimeSwitch::ProcessProgramm()
         case bulb_on_2k7:
         {
             Switch(false);
-            vTaskDelay(10000 / portTICK_PERIOD_MS);
+            vTaskDelay(t_reset / portTICK_PERIOD_MS);
             Switch(true);
             break;
         }
