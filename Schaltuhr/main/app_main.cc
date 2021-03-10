@@ -105,14 +105,14 @@ void loop()
         gpio_set_level(GPIO_NUM_5, 1);
         vTaskDelay(200 / portTICK_PERIOD_MS);
         gpio_set_level(GPIO_NUM_5, 0);
-        vTaskDelay(2800 / portTICK_PERIOD_MS);
+        vTaskDelay(1800 / portTICK_PERIOD_MS);
     }
 }
 
 extern "C" void app_main(void);
 void app_main(void)
 {
-    light_sleep_enable();
+    //light_sleep_enable();
     init();
     while (true)
     {
