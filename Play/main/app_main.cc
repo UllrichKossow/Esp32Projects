@@ -29,7 +29,7 @@ void lcd_tm1637_task(void * arg)
 {
 	tm1637_led_t * lcd = tm1637_init(LED_CLK, LED_DTA);
 
-	setenv("TZ", "UTC-1", 1);
+	setenv("TZ", "UTC", 1);
 	tzset();
 
 	tm1637_set_brightness(lcd, 1);	

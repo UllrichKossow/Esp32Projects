@@ -45,39 +45,6 @@ void RfSwitch::Switch(bool on)
     send_word(d,8);
 }
 
-void RfSwitch::ProcessProgramm()
-{
-    time_t now;
-    tm timeinfo;
-
-    time(&now);
-    setenv("TZ", "UTC+1", 1);
-    tzset();
-
-    localtime_r(&now, &timeinfo);
-
-    bool on = (timeinfo.tm_hour >= 8) && (timeinfo.tm_hour < 20);
-    if (on != m_currentState)
-    {
-        m_currentState = on;
-        if (on)
-        {
-            Switch(true);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-            Switch(false);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-            Switch(true);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-            Switch(false);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-            Switch(true);
-        }
-        else
-        {
-            Switch(false);
-        }
-    }
-}
 
 void RfSwitch::Interrupt()
 {

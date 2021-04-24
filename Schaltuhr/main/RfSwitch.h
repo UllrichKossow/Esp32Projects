@@ -20,7 +20,6 @@ public:
     void RxTask();
 
     void Switch(bool on);
-    void ProcessProgramm();
 
 private:
     void setup_gpio();

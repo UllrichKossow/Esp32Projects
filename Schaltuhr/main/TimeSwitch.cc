@@ -13,7 +13,7 @@ static const char *TAG = "TimeSwitch";
 TimeSwitch::TimeSwitch()
     : m_currentState(bulb_off)
 {
-    setenv("TZ", "UTC-1", 1);
+    setenv("TZ", "UTC-2", 1);
     tzset();
 }
 
@@ -39,31 +39,35 @@ void TimeSwitch::ProcessProgramm()
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
     tm t8{.tm_hour = 8};
+    tm t10{.tm_hour = 10};
     tm t11{.tm_hour = 11};
+    tm t12{.tm_hour = 12};
     tm t13{.tm_hour = 13};
     tm t14{.tm_hour = 14};
     tm t16{.tm_hour = 16};
+    tm t17{.tm_hour = 17};
+    tm t18{.tm_hour = 18};
     tm t20{.tm_hour = 20};
 
 #pragma GCC diagnostic pop
     bulb_state_t calculated_state = bulb_off;
-    if (inRange(timeinfo, t8, t11))
+    if (inRange(timeinfo, t8, t10))
     {
         calculated_state = bulb_on_6k5;
     }
-    else if (inRange(timeinfo, t11, t13))
+    else if (inRange(timeinfo, t10, t12))
     {
         calculated_state = bulb_on_4k0;
     }
-    else if (inRange(timeinfo, t13, t14))
+    else if (inRange(timeinfo, t12, t16))
     {
         calculated_state = bulb_on_2k7;
     }
-    else if (inRange(timeinfo, t14, t16))
+    else if (inRange(timeinfo, t16, t18))
     {
         calculated_state = bulb_on_4k0;
     }
-    else if (inRange(timeinfo, t16, t20))
+    else if (inRange(timeinfo, t18, t20))
     {
         calculated_state = bulb_on_6k5;
     }
