@@ -100,7 +100,7 @@ void lcd_tm1637_task(void *arg)
 		tm1637_set_number_lead_dot(lcd, time_number, true, timeinfo.tm_sec % 2 ? 0xFF : 0x00);
 		//int64_t t = esp_timer_get_time();
 		//ESP_LOGI(TAG, "t=%lli", t);
-		if (connected)
+		if (connected && (timeinfo.tm_sec == 0))
 		{
 			int msg_id = esp_mqtt_client_publish(client, "/Play/time", ctime(&now), 0, 1, 0);
 			ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
