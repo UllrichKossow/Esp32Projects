@@ -31,7 +31,8 @@ bool connected = false;
 
 static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
 {
-	esp_mqtt_client_handle_t client = event->client;
+	//esp_mqtt_client_handle_t client = event->client;
+	
 	switch (event->event_id)
 	{
 	case MQTT_EVENT_CONNECTED:
@@ -102,7 +103,11 @@ void lcd_tm1637_task(void *arg)
 		//ESP_LOGI(TAG, "t=%lli", t);
 		if (connected && (timeinfo.tm_sec == 0))
 		{
-			int msg_id = esp_mqtt_client_publish(client, "/Play/time", ctime(&now), 0, 1, 0);
+			char msg[80];
+			strftime(msg, 80, "%F %T", &timeinfo);
+			int msg_id = esp_mqtt_client_publish(client, "/Play/event/time", msg, 0, 1, 0);
+			ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+			msg_id = esp_mqtt_client_publish(client, "/Play/last/time", msg, 0, 1, 1);
 			ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 		}
 		vTaskDelay(1000 / portTICK_RATE_MS);
@@ -117,7 +122,6 @@ void app_main()
 	esp_log_level_set("TRANSPORT_TCP", ESP_LOG_VERBOSE);
 	esp_log_level_set("TRANSPORT_SSL", ESP_LOG_VERBOSE);
 	esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
-	esp_log_level_set("OUTBOX", ESP_LOG_VERBOSE);
 	sync_time(true);
 
 	xTaskCreate(&lcd_tm1637_task, "lcd_tm1637_task", 4096, NULL, 5, NULL);
