@@ -78,7 +78,7 @@ void lcd_tm1637_task(void *arg)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 	esp_mqtt_client_config_t mqtt_cfg = {
-		.uri = "mqtt://berry",
+		.uri = "mqtt://bpi",
 	};
 #pragma GCC diagnostic pop
 
