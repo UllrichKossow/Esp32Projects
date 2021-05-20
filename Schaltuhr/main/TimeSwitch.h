@@ -16,7 +16,7 @@ private:
     bool inRange(tm &t, tm &start, tm &stop);
 
 private:
-    enum bulb_state_t { bulb_off, bulb_on_4k0, bulb_on_2k7, bulb_on_6k5};
+    enum bulb_state_t { bulb_unknown, bulb_off, bulb_on_4k0, bulb_on_2k7, bulb_on_6k5};
     bulb_state_t m_currentState;
 
 

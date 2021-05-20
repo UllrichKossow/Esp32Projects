@@ -12,7 +12,7 @@
 static const char *TAG = "TimeSwitch";
 
 TimeSwitch::TimeSwitch()
-    : m_currentState(bulb_off)
+    : m_currentState(bulb_unknown)
 {
     setenv("TZ", "UTC-2", 1);
     tzset();
@@ -77,6 +77,9 @@ void TimeSwitch::ProcessProgramm()
     if (calculated_state != m_currentState)
     {
         ESP_LOGI(TAG, "%02i:%02i:%02i", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+        char text[80];
+        strftime(text, 80, "%T", &timeinfo);
+        MqttClient::instance()->publish("/Schaltuhr/timestamp", text, true);
         m_currentState = calculated_state;
         const int t_reset = 10000;
         const int t_pulse = 500;
@@ -127,6 +130,8 @@ void TimeSwitch::ProcessProgramm()
             MqttClient::instance()->publish("/Schaltuhr/state", "bulb_on_2k7", true);
             break;
         }
+        case bulb_unknown: // ignore
+            break; 
         }
     }
 }
