@@ -3,6 +3,7 @@
 
 #include "i2c_manager.h"
 #include "driver/i2c.h"
+#include "MqttClient.h"
 
 #include <ctime>
 #include <cmath>
@@ -149,7 +150,7 @@ void Bme280Controller::timer_callback()
         return;
     }
     addMeasure(comp_data);
-    //publish(comp_data);
+    publish(comp_data);
     //ESP_LOGD(TAG, "%s", showData(comp_data).c_str());
 }
 
@@ -219,19 +220,27 @@ void Bme280Controller::addMeasure(const bme280_data &data)
     m_measureLock.unlock();
 }
 
+std::string Bme280Controller::formatedNumber(double n, int precision)
+{
+    ostringstream s;
+    s << fixed << setprecision(precision) << n;
+    return s.str();
+}
+
 void Bme280Controller::publish(const bme280_data &data)
 {
     cJSON *measure = cJSON_CreateObject();
     timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
     cJSON *d = cJSON_AddObjectToObject(measure, "sensordata");
-    cJSON_AddNumberToObject(d, "time", now.tv_sec);
-    cJSON_AddNumberToObject(d, "temperature", 0.01 * data.temperature);
-    cJSON_AddNumberToObject(d, "humidity", 0.001 * data.humidity);
-    cJSON_AddNumberToObject(d, "pressure", 0.01 * data.pressure);
-    cJSON_AddNumberToObject(d, "pressure_nn", 0.01 * data.pressure / pow(1 - 570 / 44330.0, 5.255));
+    cJSON_AddRawToObject(d, "time", formatedNumber(now.tv_sec, 0).c_str());
+    cJSON_AddRawToObject(d, "temperature", formatedNumber(0.01 * data.temperature, 2).c_str());
+    cJSON_AddRawToObject(d, "humidity", formatedNumber(0.001 * data.humidity, 2).c_str());
+    cJSON_AddRawToObject(d, "pressure", formatedNumber(0.01 * data.pressure, 2).c_str());
+    cJSON_AddRawToObject(d, "pressure_nn", formatedNumber(0.01 * data.pressure / pow(1 - 570 / 44330.0, 5.255), 2).c_str());
     char *text = cJSON_Print(measure);
-    ESP_LOGI(TAG, "JSON=%s", text);
+    MqttClient::instance()->publish("/EspMeasure", text);
+    ESP_LOGD(TAG, "JSON=%s", text);
     free(text);
     cJSON_Delete(measure);
 }

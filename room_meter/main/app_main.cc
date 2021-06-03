@@ -36,7 +36,7 @@ void init()
     sh1106_init();
     sh1106_display_clear();
     sh1106_print_line(0, "Sync time...");
-    sync_time();
+    sync_time(true);
     sh1106_print_line(0, "Sync time done.");
     init_touch();
 }

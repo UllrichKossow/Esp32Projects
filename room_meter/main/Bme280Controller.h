@@ -52,6 +52,7 @@ private:
 
 private:
     void addMeasure(const bme280_data &data);
+    std::string formatedNumber(double n, int precision);
     void publish(const bme280_data &data);
     std::string showData(const bme280_data &data);
     void checkCapacity();
