@@ -239,7 +239,7 @@ void Bme280Controller::publish(const bme280_data &data)
     cJSON_AddRawToObject(d, "pressure", formatedNumber(0.01 * data.pressure, 2).c_str());
     cJSON_AddRawToObject(d, "pressure_nn", formatedNumber(0.01 * data.pressure / pow(1 - 570 / 44330.0, 5.255), 2).c_str());
     char *text = cJSON_Print(measure);
-    MqttClient::instance()->publish("/EspMeasure", text);
+    MqttClient::instance()->publish("EspMeasure", text);
     ESP_LOGD(TAG, "JSON=%s", text);
     free(text);
     cJSON_Delete(measure);

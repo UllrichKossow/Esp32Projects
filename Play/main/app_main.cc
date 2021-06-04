@@ -49,8 +49,8 @@ void lcd_tm1637_task(void *arg)
 		{
 			char msg[80];
 			strftime(msg, 80, "%F %T", &timeinfo);
-			MqttClient::instance()->publish("/Play/event/time", msg);
-			MqttClient::instance()->publish("/Play/last/time", msg, true);
+			MqttClient::instance()->publish("Play/event/time", msg);
+			MqttClient::instance()->publish("Play/last/time", msg, true);
 		}
 		vTaskDelay(1000 / portTICK_RATE_MS);
 	}

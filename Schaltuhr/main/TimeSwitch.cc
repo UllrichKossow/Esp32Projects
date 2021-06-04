@@ -21,7 +21,7 @@ TimeSwitch::TimeSwitch()
 void TimeSwitch::Switch(bool state)
 {
     m_rfSwitch.Switch(state);
-    MqttClient::instance()->publish("/Schaltuhr/switch", state ? "on" : "off");
+    MqttClient::instance()->publish("Schaltuhr/switch", state ? "on" : "off");
 }
 
 bool TimeSwitch::inRange(tm &t, tm &start, tm &stop)
@@ -79,7 +79,7 @@ void TimeSwitch::ProcessProgramm()
         ESP_LOGI(TAG, "%02i:%02i:%02i", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
         char text[80];
         strftime(text, 80, "%T", &timeinfo);
-        MqttClient::instance()->publish("/Schaltuhr/timestamp", text, true);
+        MqttClient::instance()->publish("Schaltuhr/timestamp", text, true);
         m_currentState = calculated_state;
         const int t_reset = 10000;
         const int t_pulse = 500;
@@ -87,7 +87,7 @@ void TimeSwitch::ProcessProgramm()
         {
         case bulb_off:
             Switch(false);
-            MqttClient::instance()->publish("/Schaltuhr/state", "bulb_off", true);
+            MqttClient::instance()->publish("Schaltuhr/state", "bulb_off", true);
             break;
 
         case bulb_on_6k5:
@@ -104,7 +104,7 @@ void TimeSwitch::ProcessProgramm()
             Switch(false);
             vTaskDelay(t_pulse / portTICK_PERIOD_MS);
             Switch(true);
-            MqttClient::instance()->publish("/Schaltuhr/state", "bulb_on_6k5", true);
+            MqttClient::instance()->publish("Schaltuhr/state", "bulb_on_6k5", true);
             break;
         }
 
@@ -118,7 +118,7 @@ void TimeSwitch::ProcessProgramm()
             Switch(false);
             vTaskDelay(t_pulse / portTICK_PERIOD_MS);
             Switch(true);
-            MqttClient::instance()->publish("/Schaltuhr/state", "bulb_on_4k0", true);
+            MqttClient::instance()->publish("Schaltuhr/state", "bulb_on_4k0", true);
             break;
         }
 
@@ -127,7 +127,7 @@ void TimeSwitch::ProcessProgramm()
             Switch(false);
             vTaskDelay(t_reset / portTICK_PERIOD_MS);
             Switch(true);
-            MqttClient::instance()->publish("/Schaltuhr/state", "bulb_on_2k7", true);
+            MqttClient::instance()->publish("Schaltuhr/state", "bulb_on_2k7", true);
             break;
         }
         case bulb_unknown: // ignore

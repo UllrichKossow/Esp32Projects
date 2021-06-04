@@ -52,32 +52,32 @@ esp_err_t MqttClient::mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
     switch (event->event_id)
     {
     case MQTT_EVENT_CONNECTED:
-        ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
+        ESP_LOGD(TAG, "MQTT_EVENT_CONNECTED");
         m_connected = true;
         break;
     case MQTT_EVENT_DISCONNECTED:
-        ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+        ESP_LOGD(TAG, "MQTT_EVENT_DISCONNECTED");
         m_connected = false;
         break;
     case MQTT_EVENT_ANY:
-        ESP_LOGI(TAG, "MQTT_EVENT_ANY");
+        ESP_LOGD(TAG, "MQTT_EVENT_ANY");
     case MQTT_EVENT_ERROR:
-        ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
+        ESP_LOGD(TAG, "MQTT_EVENT_ERROR");
         break;
     case MQTT_EVENT_SUBSCRIBED:
-        ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
+        ESP_LOGD(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
         break;
     case MQTT_EVENT_UNSUBSCRIBED:
-        ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
+        ESP_LOGD(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
         break;
     case MQTT_EVENT_PUBLISHED:
-        ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
+        ESP_LOGD(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
         break;
     case MQTT_EVENT_DATA:
-        ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+        ESP_LOGD(TAG, "MQTT_EVENT_DATA");
         break;
     case MQTT_EVENT_BEFORE_CONNECT:
-        ESP_LOGI(TAG, "MQTT_EVENT_BEFORE_CONNECT");
+        ESP_LOGD(TAG, "MQTT_EVENT_BEFORE_CONNECT");
         break;
     }
     return ESP_OK;
