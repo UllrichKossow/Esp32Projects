@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "..\\Common\\MqttClient"
+		},
+		{
+			"path": "..\\Common"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"memory": "cpp"
+		}
+	}
+}
