@@ -88,7 +88,9 @@ static int8_t user_i2c_write(uint8_t reg_addr, const uint8_t *data, uint32_t len
 
 static void user_delay_us(uint32_t usec, void *intf_ptr)
 {
-    vTaskDelay( (usec/1000) / (portTICK_PERIOD_MS));
+    if ( usec < 1000)
+        usec = 1000;
+    vTaskDelay((usec / 1000) / (portTICK_PERIOD_MS));
 }
 
 

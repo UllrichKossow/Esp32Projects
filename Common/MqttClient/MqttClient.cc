@@ -61,6 +61,7 @@ esp_err_t MqttClient::mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
         break;
     case MQTT_EVENT_ANY:
         ESP_LOGD(TAG, "MQTT_EVENT_ANY");
+        break;
     case MQTT_EVENT_ERROR:
         ESP_LOGD(TAG, "MQTT_EVENT_ERROR");
         break;
@@ -78,6 +79,9 @@ esp_err_t MqttClient::mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
         break;
     case MQTT_EVENT_BEFORE_CONNECT:
         ESP_LOGD(TAG, "MQTT_EVENT_BEFORE_CONNECT");
+        break;
+    case MQTT_EVENT_DELETED:
+        ESP_LOGD(TAG, "MQTT_EVENT_DELETED");
         break;
     }
     return ESP_OK;
