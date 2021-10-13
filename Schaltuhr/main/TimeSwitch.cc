@@ -5,6 +5,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include "cJSON.h"
+
 #include "esp_timer.h"
 #include "esp_log.h"
 #include "MqttClient.h"
@@ -12,16 +14,23 @@
 static const char *TAG = "TimeSwitch";
 
 TimeSwitch::TimeSwitch()
-    : m_currentState(bulb_unknown)
+    : m_currentState(bulb_unknown), m_table(nullptr)
 {
     setenv("TZ", "UTC-2", 1);
     tzset();
+    readTable("{\"cams\":[{\"time\":\"08:00\",\"state\":\"bulb_6k5\"},{\"time\":\"16:00\",\"state\":\"bulb_off\"}]}");
 }
 
 void TimeSwitch::Switch(bool state)
 {
     m_rfSwitch.Switch(state);
     MqttClient::instance()->publish("Schaltuhr/switch", state ? "on" : "off");
+}
+
+bool TimeSwitch::readTable(const char *json)
+{
+    m_table = cJSON_Parse(json);
+    return true;
 }
 
 bool TimeSwitch::inRange(tm &t, tm &start, tm &stop)
