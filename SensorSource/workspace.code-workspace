@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "..\\Common\\I2cManager"
+		},
+		{
+			"path": "..\\Common\\SH1106"
 		}
 	],
 	"settings": {

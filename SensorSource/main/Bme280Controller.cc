@@ -152,7 +152,7 @@ void Bme280Controller::timer_callback()
     int8_t rslt = bme280_set_sensor_mode(BME280_FORCED_MODE, &m_dev);
     if (rslt != BME280_OK)
     {
-        ESP_LOGE(TAG, "bme280_set_sensor_mode() failed.");
+        ESP_LOGE(TAG, "bme280_set_sensor_mode(BME280_FORCED_MODE, %p) failed with %i.", &m_dev, rslt);
         return;
     }
     m_dev.delay_us(m_req_delay, nullptr);

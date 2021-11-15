@@ -43,21 +43,6 @@ void init()
 
 
 //------------------------------------------------------------------------------------------
-void sleepUpTo(uint64_t usec)
-{
-    uint64_t nextAlarm = esp_timer_get_next_alarm();
-    uint64_t maxSleep = nextAlarm - esp_timer_get_time();
-    if (maxSleep > 10)
-        maxSleep -= 10;
-    uint64_t delay_us = min(maxSleep, usec);
-    //ESP_LOGD(TAG, "Lightsleep for %lli us", delay_us);
-
-    esp_sleep_enable_timer_wakeup(delay_us);
-    esp_light_sleep_start();
-}
-
-
-//------------------------------------------------------------------------------------------
 void plotValues(vector<double> values)
 {
     double v_max = values[0];
