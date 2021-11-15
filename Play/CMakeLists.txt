@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 set(EXTRA_COMPONENT_DIRS ../Common/WlanConnect ../Common/SetSystemTime ../Common/TM1637 ../Common/MqttClient) 
-set(COMPONENTS esptool_py esp32 freertos main)
+set(COMPONENTS esptool_py esp32 freertos main tcp_transport)
 
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)

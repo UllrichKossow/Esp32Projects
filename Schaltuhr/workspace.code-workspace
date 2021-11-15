@@ -9,7 +9,8 @@
 	],
 	"settings": {
 		"files.associations": {
-			"memory": "cpp"
+			"memory": "cpp",
+			"cjson.h": "c"
 		}
 	}
 }

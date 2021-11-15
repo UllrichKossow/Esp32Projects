@@ -30,6 +30,7 @@ void TimeSwitch::Switch(bool state)
 bool TimeSwitch::readTable(const char *json)
 {
     m_table = cJSON_Parse(json);
+    cJSON *p = cJSON_GetObjectItem(m_table, "cams");
     return true;
 }
 

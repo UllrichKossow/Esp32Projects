@@ -5,11 +5,15 @@
 		},
 		{
 			"path": "..\\Common\\newBME280"
+		},
+		{
+			"path": "..\\Common\\I2cManager"
 		}
 	],
 	"settings": {
 		"files.associations": {
 			"functional": "c"
-		}
+		},
+		"cmake.generator": "ninja"
 	}
 }

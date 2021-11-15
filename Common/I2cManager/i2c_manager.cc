@@ -10,7 +10,7 @@
 
 static const char *TAG = "i2c_manager";
 
-static uint32_t i2c_frequency = 100000;
+static uint32_t i2c_frequency = 400000;
 static i2c_port_t i2c_port = I2C_NUM_0;
 
 
@@ -46,6 +46,7 @@ i2c_cmd_handle_t i2c_manager::GetCmdHandle()
     conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
     conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
     conf.master.clk_speed = i2c_frequency;
+    conf.clk_flags = 0;
 
     i2c_param_config(0, &conf);
 
