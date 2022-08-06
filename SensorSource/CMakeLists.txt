@@ -5,4 +5,4 @@ set(EXTRA_COMPONENT_DIRS ../Common)
 set(COMPONENTS esptool_py esp32 freertos tcp_transport main)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(SensorSouece)
+project(SensorSource)
