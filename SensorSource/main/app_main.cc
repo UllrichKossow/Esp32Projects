@@ -232,7 +232,7 @@ void light_sleep_enable(void)
 extern "C" void app_main(void);
 void app_main()
 {
-    light_sleep_enable();
+    //light_sleep_enable();
     init();
     while (true)
     {
