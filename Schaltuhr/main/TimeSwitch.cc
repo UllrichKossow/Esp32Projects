@@ -16,7 +16,7 @@ static const char *TAG = "TimeSwitch";
 TimeSwitch::TimeSwitch()
     : m_currentState(bulb_unknown), m_table(nullptr)
 {
-    setenv("TZ", "UTC-2", 1);
+    setenv("TZ", "UTC-1", 1);
     tzset();
     readTable("{\"cams\":[{\"time\":\"08:00\",\"state\":\"bulb_6k5\"},{\"time\":\"16:00\",\"state\":\"bulb_off\"}]}");
 }
@@ -56,6 +56,7 @@ void TimeSwitch::ProcessProgramm()
     tm t12{.tm_hour = 12};
     tm t13{.tm_hour = 13};
     tm t14{.tm_hour = 14};
+    tm t15{.tm_hour = 15};
     tm t16{.tm_hour = 16};
     tm t17{.tm_hour = 17};
     tm t18{.tm_hour = 18};
@@ -67,15 +68,15 @@ void TimeSwitch::ProcessProgramm()
     {
         calculated_state = bulb_on_6k5;
     }
-    else if (inRange(timeinfo, t10, t12))
+    else if (inRange(timeinfo, t10, t13))
     {
         calculated_state = bulb_on_4k0;
     }
-    else if (inRange(timeinfo, t12, t16))
+    else if (inRange(timeinfo, t13, t15))
     {
         calculated_state = bulb_on_2k7;
     }
-    else if (inRange(timeinfo, t16, t18))
+    else if (inRange(timeinfo, t15, t18))
     {
         calculated_state = bulb_on_4k0;
     }
