@@ -8,4 +8,4 @@ set(COMPONENTS esptool_py esp32 freertos main tcp_transport)
 
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(Play)
+project(SevenSegmentClock)

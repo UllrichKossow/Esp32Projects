@@ -4,13 +4,12 @@
 			"path": "."
 		},
 		{
-			"path": "..\\Common"
+			"path": "../Common"
 		}
 	],
 	"settings": {
 		"files.associations": {
-			"memory": "cpp",
-			"cjson.h": "c"
+			"memory": "cpp"
 		}
 	}
 }
