@@ -37,7 +37,7 @@ private:
 
 private:
     TaskHandle_t m_rxTask;
-    xQueueHandle m_rxQueue;
+    QueueHandle_t m_rxQueue;
     bool m_currentState;
     gpio_num_t m_tx_pin, m_rx_pin;
 };

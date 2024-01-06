@@ -10,7 +10,7 @@
 #include "esp_timer.h"
 #include "esp_sleep.h"
 #include "esp_pm.h"
-#include "esp32/clk.h"
+#include "esp_private/esp_clk.h"
 #include "driver/gpio.h"
 
 
@@ -23,11 +23,10 @@ static const char *TAG = "app_main";
 void light_sleep_enable(void)
 {
     int cur_freq_mhz = esp_clk_cpu_freq() / 1000000;
-    int xtal_freq = (int)rtc_clk_xtal_freq_get();
-
+    
     const esp_pm_config_esp32_t pm_config = {
         .max_freq_mhz = cur_freq_mhz,
-        .min_freq_mhz = xtal_freq,
+        .min_freq_mhz = cur_freq_mhz,
         .light_sleep_enable = true};
     ESP_ERROR_CHECK(esp_pm_configure(&pm_config));
 }

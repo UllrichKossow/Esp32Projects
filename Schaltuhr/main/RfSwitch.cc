@@ -91,7 +91,7 @@ void RfSwitch::RxTask()
                     line[idx++] = '\0';
                     uint32_t code;
                     bool ok = decode_sequence(line, code);
-                    printf("Code %s %08x\n", ok ? "ok" : "fail", code);
+                    printf("Code %s %08lx\n", ok ? "ok" : "fail", code);
                     idx = 0;
                 }
                 line[idx++] = ch;

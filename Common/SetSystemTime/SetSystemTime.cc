@@ -31,7 +31,7 @@ static const char *TAG = "sntp";
 
 void time_sync_notification_cb(struct timeval *tv)
 {
-    ESP_LOGI(TAG, "%s  tv={%li, %li}", __PRETTY_FUNCTION__, tv->tv_sec, tv->tv_usec);
+    ESP_LOGI(TAG, "%s  tv={%lli, %li}", __PRETTY_FUNCTION__, tv->tv_sec, tv->tv_usec);
 }
 
 
@@ -44,14 +44,14 @@ static void initialize_sntp(void)
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     ESP_ERROR_CHECK(my_wifi_connect());
     
-    sntp_setoperatingmode(SNTP_OPMODE_POLL);
-    sntp_setservername(0, "pool.ntp.org");
+    esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
+    esp_sntp_setservername(0, "pool.ntp.org");
     sntp_set_time_sync_notification_cb(time_sync_notification_cb);
 
     ESP_LOGI(TAG, "We are smooth...");
     sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);    
     sntp_set_sync_interval(60*60*1000); //1h
-    sntp_init();
+    esp_sntp_init();
 }
 
 
@@ -73,11 +73,11 @@ static void obtain_time(bool keepSync)
     {
         time(&now);
         localtime_r(&now, &timeinfo);
-        ESP_LOGI(TAG, "sntp_get_sync_interval()=%i", sntp_get_sync_interval());
+        ESP_LOGI(TAG, "sntp_get_sync_interval()=%lu", sntp_get_sync_interval());
     }
     else
     {
-        sntp_stop();
+        esp_sntp_stop();
         my_wifi_disconnect();
     }
 }
