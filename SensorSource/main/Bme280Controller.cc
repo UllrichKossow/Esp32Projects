@@ -221,7 +221,7 @@ string Bme280Controller::showData(const bme280_data &data)
 
 void Bme280Controller::addMeasure(const bme280_data &data)
 {
-    ESP_LOGD(TAG, "%s heap=%i, values=%i, interval=%i", __FUNCTION__, xPortGetFreeHeapSize(), m_measures.size(), m_currentInterval);
+    ESP_LOGD(TAG, "%s heap=%i, values=%i, interval=%lu", __FUNCTION__, xPortGetFreeHeapSize(), m_measures.size(), m_currentInterval);
 
     measure_t m;
     clock_gettime(CLOCK_MONOTONIC, &m.t);

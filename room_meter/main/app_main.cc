@@ -188,7 +188,7 @@ void loop()
             continue;
         }
         timespec d = b.getDuration();
-        vector<measure_t> m = b.getValuesForDuration(128, min((long int)d.tv_sec, 86400L));
+        vector<measure_t> m = b.getValuesForDuration(128, min(d.tv_sec, (time_t)86400U));
         vector<double> plotData;
 
         switch (cycle)
