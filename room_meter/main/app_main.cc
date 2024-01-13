@@ -15,7 +15,7 @@
 #include "esp_sleep.h"
 
 #include "esp_pm.h"
-#include "esp32/clk.h"
+//#include "esp32/esp_clk.h"
 
 //#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include "esp_log.h"
@@ -188,7 +188,7 @@ void loop()
             continue;
         }
         timespec d = b.getDuration();
-        vector<measure_t> m = b.getValuesForDuration(128, min(d.tv_sec, 86400L));
+        vector<measure_t> m = b.getValuesForDuration(128, min((long int)d.tv_sec, 86400L));
         vector<double> plotData;
 
         switch (cycle)
@@ -232,14 +232,10 @@ void loop()
 
 void light_sleep_enable(void)
 {
-    int cur_freq_mhz = esp_clk_cpu_freq() / 1000000;
-    int xtal_freq = (int) rtc_clk_xtal_freq_get();
-
-    const esp_pm_config_esp32_t pm_config = {
-        .max_freq_mhz = cur_freq_mhz,
-        .min_freq_mhz = xtal_freq,
-        .light_sleep_enable = true
-    };
+    esp_pm_config_t pm_config;
+    esp_pm_get_configuration(&pm_config);
+    pm_config.light_sleep_enable = true;
+    
     ESP_ERROR_CHECK( esp_pm_configure(&pm_config) );
 }
 

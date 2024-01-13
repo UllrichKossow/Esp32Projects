@@ -48,7 +48,7 @@ i2c_cmd_handle_t i2c_manager::GetCmdHandle()
     conf.master.clk_speed = i2c_frequency;
     conf.clk_flags = 0;
 
-    i2c_param_config(0, &conf);
+    i2c_param_config(i2c_port, &conf);
 
     m_cmd = i2c_cmd_link_create();
     return m_cmd; 
