@@ -52,7 +52,7 @@ void lcd_tm1637_task(void *arg)
 			MqttClient::instance()->publish("SevenSegmentClock/event/time", msg);
 			MqttClient::instance()->publish("SevenSegmentClock/last/time", msg, true);
 		}
-		vTaskDelay(1000 / portTICK_RATE_MS);
+		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
 }
 
