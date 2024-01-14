@@ -29,11 +29,11 @@ const gpio_num_t LED_DTA = GPIO_NUM_5;
 
 void lcd_tm1637_task(void *arg)
 {
-	tm1637_led_t *lcd = tm1637_init(LED_CLK, LED_DTA);
+	tm1637_led_t *led7seg = tm1637_init(LED_CLK, LED_DTA);
 	setenv("TZ", "UTC", 1);
 	tzset();
 
-	tm1637_set_brightness(lcd, 1);
+	tm1637_set_brightness(led7seg, 1);
 	while (true)
 	{
 		time_t now;
@@ -42,7 +42,7 @@ void lcd_tm1637_task(void *arg)
 		localtime_r(&now, &timeinfo);
 		int time_number = 100 * timeinfo.tm_hour + timeinfo.tm_min;
 
-		tm1637_set_number_lead_dot(lcd, time_number, true, timeinfo.tm_sec % 2 ? 0xFF : 0x00);
+		tm1637_set_number_lead_dot(led7seg, time_number, true, timeinfo.tm_sec % 2 ? 0xFF : 0x00);
 		//int64_t t = esp_timer_get_time();
 		//ESP_LOGI(TAG, "t=%lli", t);
 		if (timeinfo.tm_sec == 0)
