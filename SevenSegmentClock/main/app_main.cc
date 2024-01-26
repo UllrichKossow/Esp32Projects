@@ -28,6 +28,8 @@
 const gpio_num_t LED_CLK = GPIO_NUM_4;
 const gpio_num_t LED_DTA = GPIO_NUM_5;
 
+#define xLOW_POWER
+
 void light_sleep_enable(void)
 {
     esp_pm_config_t pm_config;
@@ -45,7 +47,11 @@ void lcd_tm1637_task(void *arg)
 
 	tm1637_set_brightness(led7seg, 1);
 	tm1637_set_number_lead_dot(led7seg,0, true, false);
+#ifdef LOW_POWER
+	sync_time(false);
+#else
 	sync_time(true);
+#endif
 	while (true)
 	{
 		time_t now;
@@ -57,6 +63,7 @@ void lcd_tm1637_task(void *arg)
 		tm1637_set_number_lead_dot(led7seg, time_number, true, timeinfo.tm_sec % 2 ? 0xFF : 0x00);
 		//int64_t t = esp_timer_get_time();
 		//ESP_LOGI(TAG, "t=%lli", t);
+#ifndef LOW_POWER
 		if (timeinfo.tm_sec == 0)
 		{
 			char msg[80];
@@ -64,6 +71,7 @@ void lcd_tm1637_task(void *arg)
 			MqttClient::instance()->publish("SevenSegmentClock/event/time", msg);
 			MqttClient::instance()->publish("SevenSegmentClock/last/time", msg, true);
 		}
+#endif
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
 }
@@ -77,5 +85,6 @@ void app_main()
 	esp_log_level_set("TRANSPORT_SSL", ESP_LOG_VERBOSE);
 	esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
 	light_sleep_enable();
+
 	xTaskCreate(&lcd_tm1637_task, "lcd_tm1637_task", 4096, NULL, 5, NULL);
 }
