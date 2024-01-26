@@ -15,6 +15,7 @@
 #include <esp_timer.h>
 #include <driver/gpio.h>
 #include <esp_log.h>
+#include <esp_pm.h>
 
 #include "MqttClient.h"
 
@@ -27,6 +28,15 @@
 const gpio_num_t LED_CLK = GPIO_NUM_4;
 const gpio_num_t LED_DTA = GPIO_NUM_5;
 
+void light_sleep_enable(void)
+{
+    esp_pm_config_t pm_config;
+    esp_pm_get_configuration(&pm_config);
+    pm_config.light_sleep_enable = true;
+
+    ESP_ERROR_CHECK( esp_pm_configure(&pm_config) );
+}
+
 void lcd_tm1637_task(void *arg)
 {
 	tm1637_led_t *led7seg = tm1637_init(LED_CLK, LED_DTA);
@@ -34,6 +44,8 @@ void lcd_tm1637_task(void *arg)
 	tzset();
 
 	tm1637_set_brightness(led7seg, 1);
+	tm1637_set_number_lead_dot(led7seg,0, true, false);
+	sync_time(true);
 	while (true)
 	{
 		time_t now;
@@ -64,7 +76,6 @@ void app_main()
 	esp_log_level_set("TRANSPORT_TCP", ESP_LOG_VERBOSE);
 	esp_log_level_set("TRANSPORT_SSL", ESP_LOG_VERBOSE);
 	esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
-	sync_time(true);
-
+	light_sleep_enable();
 	xTaskCreate(&lcd_tm1637_task, "lcd_tm1637_task", 4096, NULL, 5, NULL);
 }
