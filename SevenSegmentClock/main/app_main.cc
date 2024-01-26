@@ -72,7 +72,12 @@ void lcd_tm1637_task(void *arg)
 			MqttClient::instance()->publish("SevenSegmentClock/last/time", msg, true);
 		}
 #endif
-		vTaskDelay(1000 / portTICK_PERIOD_MS);
+		vTaskDelay(900 / portTICK_PERIOD_MS);
+		struct timeval tv_now;
+		gettimeofday(&tv_now, NULL);
+		int delay_ms = (1000000-tv_now.tv_usec)/1000;
+		ESP_LOGD(TAG, "delay=%i", delay_ms);
+		vTaskDelay(delay_ms / portTICK_PERIOD_MS);
 	}
 }
 
