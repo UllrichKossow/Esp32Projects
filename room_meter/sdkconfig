@@ -1,6 +1,6 @@
 #
 # Automatically generated file. DO NOT EDIT.
-# Espressif IoT Development Framework (ESP-IDF)  Project Configuration
+# Espressif IoT Development Framework (ESP-IDF) 5.1.2 Project Configuration
 #
 CONFIG_SOC_BROWNOUT_RESET_SUPPORTED="Not determined"
 CONFIG_SOC_TWAI_BRP_DIV_SUPPORTED="Not determined"
@@ -949,6 +949,7 @@ CONFIG_LWIP_SO_REUSE=y
 CONFIG_LWIP_SO_REUSE_RXTOALL=y
 # CONFIG_LWIP_SO_RCVBUF is not set
 # CONFIG_LWIP_NETBUF_RECVINFO is not set
+CONFIG_LWIP_IP_DEFAULT_TTL=64
 CONFIG_LWIP_IP4_FRAG=y
 # CONFIG_LWIP_IP4_REASSEMBLY is not set
 CONFIG_LWIP_IP_REASS_MAX_PBUFS=10
