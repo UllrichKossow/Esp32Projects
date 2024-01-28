@@ -1,0 +1,8 @@
+# This file was generated using idf.py save-defconfig. It can be edited manually.
+# Espressif IoT Development Framework (ESP-IDF)  Project Minimal Configuration
+#
+CONFIG_ESP_SLEEP_POWER_DOWN_FLASH=y
+CONFIG_FREERTOS_IDLE_TASK_STACKSIZE=2304
+CONFIG_LWIP_DHCPS=n
+CONFIG_LWIP_TCP_SND_BUF_DEFAULT=5744
+CONFIG_LWIP_TCP_WND_DEFAULT=5744
