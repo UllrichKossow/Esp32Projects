@@ -8,13 +8,13 @@ menu "WIFI Connection Configuration"
             Choose this option to connect with WiFi
 
     if EXAMPLE_CONNECT_WIFI
-        config EXAMPLE_WIFI_SSID
+        config UK_CFG_WIFI_SSID
             string "WiFi SSID"
             default "myssid"
             help
                 SSID (network name) for the example to connect to.
 
-        config EXAMPLE_WIFI_PASSWORD
+        config UK_CFG_WIFI_PASSWORD
             string "WiFi Password"
             default "mypassword"
             help
