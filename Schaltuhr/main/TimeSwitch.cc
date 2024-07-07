@@ -51,6 +51,7 @@ void TimeSwitch::ProcessProgramm()
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
     tm t8{.tm_hour = 8};
+    tm t9{.tm_hour = 9};
     tm t10{.tm_hour = 10};
     tm t11{.tm_hour = 11};
     tm t12{.tm_hour = 12};
@@ -60,27 +61,28 @@ void TimeSwitch::ProcessProgramm()
     tm t16{.tm_hour = 16};
     tm t17{.tm_hour = 17};
     tm t18{.tm_hour = 18};
+    tm t19{.tm_hour = 19};
     tm t20{.tm_hour = 20};
 
 #pragma GCC diagnostic pop
     bulb_state_t calculated_state = bulb_off;
-    if (inRange(timeinfo, t8, t10))
+    if (inRange(timeinfo, t8, t9))
     {
         calculated_state = bulb_on_6k5;
     }
-    else if (inRange(timeinfo, t10, t13))
+    else if (inRange(timeinfo, t9, t10))
     {
         calculated_state = bulb_on_4k0;
     }
-    else if (inRange(timeinfo, t13, t15))
+    else if (inRange(timeinfo, t10, t18))
     {
         calculated_state = bulb_on_2k7;
     }
-    else if (inRange(timeinfo, t15, t18))
+    else if (inRange(timeinfo, t18, t19))
     {
         calculated_state = bulb_on_4k0;
     }
-    else if (inRange(timeinfo, t18, t20))
+    else if (inRange(timeinfo, t19, t20))
     {
         calculated_state = bulb_on_6k5;
     }
