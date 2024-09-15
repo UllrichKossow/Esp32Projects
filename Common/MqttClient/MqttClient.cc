@@ -36,7 +36,7 @@ void MqttClient::init()
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
         esp_mqtt_client_config_t mqtt_cfg = { };
-        mqtt_cfg.broker.address.uri = "mqtt://bpi.fritz.box";
+        mqtt_cfg.broker.address.uri = "mqtt://lilo.fritz.box";
 #pragma GCC diagnostic pop
 
         m_client = esp_mqtt_client_init(&mqtt_cfg);
