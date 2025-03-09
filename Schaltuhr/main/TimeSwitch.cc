@@ -16,7 +16,7 @@ static const char *TAG = "TimeSwitch";
 TimeSwitch::TimeSwitch()
     : m_currentState(bulb_unknown), m_table(nullptr)
 {
-    setenv("TZ", "UTC-1", 1);
+    setenv("TZ", "UTC-2", 1);
     tzset();
     readTable("{\"cams\":[{\"time\":\"08:00\",\"state\":\"bulb_6k5\"},{\"time\":\"16:00\",\"state\":\"bulb_off\"}]}");
 }

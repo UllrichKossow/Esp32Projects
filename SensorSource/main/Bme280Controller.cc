@@ -3,6 +3,7 @@
 
 #include "i2c_manager.h"
 #include "driver/i2c.h"
+#include "esp_timer.h"
 #include "MqttClient.h"
 
 #include <ctime>
@@ -22,12 +23,6 @@ static const char* TAG = "Bme280Controller";
 
 using namespace std;
 
-struct identifier
-{
-    /* Variable to hold device address */
-    uint8_t dev_addr;
-};
-
 static void to_timer_callback(void *arg)
 {
     Bme280Controller *ctrl = reinterpret_cast<Bme280Controller*>(arg);
@@ -37,18 +32,17 @@ static void to_timer_callback(void *arg)
 static int8_t user_i2c_read(uint8_t reg_addr, uint8_t *data, uint32_t len, void *intf_ptr)
 {
     esp_err_t espRc;
-    struct identifier id;
-
-    id = *((struct identifier *)intf_ptr);
+    uint8_t dev_addr = *(uint8_t*)intf_ptr;
 
     i2c_cmd_handle_t cmd = i2c_manager::instance()->GetCmdHandle();
+    ESP_LOGI(TAG, "def_addr=%i", dev_addr);
 
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, id.dev_addr | I2C_MASTER_WRITE, true);
+    i2c_master_write_byte(cmd, dev_addr<<1 | I2C_MASTER_WRITE, true);
     i2c_master_write_byte(cmd, reg_addr, true);
 
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, id.dev_addr | I2C_MASTER_READ, true);
+    i2c_master_write_byte(cmd, dev_addr<<1 | I2C_MASTER_READ, true);
 
     if (len > 1)
     {
@@ -66,14 +60,14 @@ static int8_t user_i2c_read(uint8_t reg_addr, uint8_t *data, uint32_t len, void 
 static int8_t user_i2c_write(uint8_t reg_addr, const uint8_t *data, uint32_t len, void *intf_ptr)
 {
     esp_err_t espRc;
-    struct identifier id;
+    uint8_t dev_addr = *(uint8_t*)intf_ptr;
 
-    id = *((struct identifier *)intf_ptr);
+    ESP_LOGI(TAG, "def_addr=%i", dev_addr);
 
     i2c_cmd_handle_t cmd = i2c_manager::instance()->GetCmdHandle();
 
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, id.dev_addr | I2C_MASTER_WRITE, true);
+    i2c_master_write_byte(cmd, dev_addr<<1 | I2C_MASTER_WRITE, true);
 
     i2c_master_write_byte(cmd, reg_addr, true);
     i2c_master_write(cmd, (uint8_t*)data, len, true);
@@ -88,9 +82,12 @@ static int8_t user_i2c_write(uint8_t reg_addr, const uint8_t *data, uint32_t len
 
 static void user_delay_us(uint32_t usec, void *intf_ptr)
 {
-    if ( usec < 1000)
-        usec = 1000;
-    vTaskDelay((usec / 1000) / (portTICK_PERIOD_MS));
+    auto t0 = esp_timer_get_time();
+    auto t1 = t0 + usec;
+    while(esp_timer_get_time() < t1)
+    {
+
+    }
 }
 
 
@@ -103,9 +100,9 @@ Bme280Controller::Bme280Controller()
 
 void Bme280Controller::init()
 {
-    identifier id = {.dev_addr = BME280_I2C_ADDR_PRIM};
+    static uint8_t dev_addr = BME280_I2C_ADDR_PRIM;
 
-    m_dev.intf_ptr = &id;
+    m_dev.intf_ptr = &dev_addr;
 
     m_dev.intf = BME280_I2C_INTF;
     m_dev.read = user_i2c_read;

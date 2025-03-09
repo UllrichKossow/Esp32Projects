@@ -161,11 +161,12 @@ void loop()
     b.init();
     b.start();
     int cycle = 0;
-
     while (true)
     {
+        ESP_LOGI(TAG, "t=%lli", esp_timer_get_time());
         //sleepUpTo(5 * 1000 * 1000);
         vTaskDelay(5000/portTICK_PERIOD_MS);
+        //continue;
         if (b.getCounter() < 5)
         {
             showSummary(0, 0, {0,0}, 0);
@@ -228,6 +229,7 @@ extern "C" void app_main(void);
 void app_main()
 {
     //light_sleep_enable();
+    //
     init();
     while (true)
     {
