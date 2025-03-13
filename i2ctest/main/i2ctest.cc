@@ -4,6 +4,7 @@ const char *TAG="i2ctest";
 
 #include "esp_log.h"
 #include "driver/i2c_master.h"
+#include "bme280.h"
 
 
 
@@ -18,7 +19,7 @@ void i2ctest() {
     
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-        .device_address = 0x58,
+        .device_address = 0x76,
         .scl_speed_hz = 100000,
     };
     
