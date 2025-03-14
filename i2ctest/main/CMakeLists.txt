@@ -1,3 +1,3 @@
-idf_component_register(SRCS "i2ctest.cc"
+idf_component_register(SRCS "Bme280Adapter.cc" "i2ctest.cc"
                     INCLUDE_DIRS "."
-                    REQUIRES  esp_driver_i2c newBME280)
+                    REQUIRES esp_driver_i2c esp_timer newBME280)
