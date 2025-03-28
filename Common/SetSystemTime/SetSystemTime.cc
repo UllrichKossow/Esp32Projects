@@ -8,55 +8,46 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include <string.h>
-#include <time.h>
 #include <sys/time.h>
+#include <time.h>
 
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
-#include "esp_system.h"
+#include "connect.h"
+#include "esp_attr.h"
 #include "esp_event.h"
 #include "esp_log.h"
-#include "esp_attr.h"
 #include "esp_sleep.h"
-#include "nvs_flash.h"
 #include "esp_sntp.h"
-#include "connect.h"
-
+#include "esp_system.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/event_groups.h"
+#include "freertos/task.h"
+#include "nvs_flash.h"
 
 using namespace std;
 
 static const char *TAG = "sntp";
 
-void time_sync_notification_cb(struct timeval *tv)
-{
-    ESP_LOGI(TAG, "%s  tv={%lli, %li}", __PRETTY_FUNCTION__, tv->tv_sec, tv->tv_usec);
-}
+void time_sync_notification_cb(struct timeval *tv) { ESP_LOGI(TAG, "%s  tv={%lli, %li}", __PRETTY_FUNCTION__, tv->tv_sec, tv->tv_usec); }
 
-
-static void initialize_sntp(void)
-{
+static void initialize_sntp(void) {
     ESP_LOGI(TAG, "Initializing SNTP");
-    
+
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     ESP_ERROR_CHECK(my_wifi_connect());
-    
+
     esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
     esp_sntp_setservername(0, "pool.ntp.org");
     sntp_set_time_sync_notification_cb(time_sync_notification_cb);
 
     ESP_LOGI(TAG, "We are smooth...");
-    sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);    
-    sntp_set_sync_interval(60*60*1000); //1h
+    sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);
+    sntp_set_sync_interval(60 * 60 * 1000); // 1h
     esp_sntp_init();
 }
 
-
-static void obtain_time(bool keepSync)
-{
+static void obtain_time(bool keepSync) {
     initialize_sntp();
 
     // wait for time to be set
@@ -69,22 +60,14 @@ static void obtain_time(bool keepSync)
         vTaskDelay(2000 / portTICK_PERIOD_MS);
     }
 
-    if (keepSync)
-    {
+    if (keepSync) {
         time(&now);
         localtime_r(&now, &timeinfo);
         ESP_LOGI(TAG, "sntp_get_sync_interval()=%lu", sntp_get_sync_interval());
-    }
-    else
-    {
+    } else {
         esp_sntp_stop();
         my_wifi_disconnect();
     }
 }
 
-
-void sync_time(bool keepSync)
-{
-    obtain_time(keepSync);    
-}
-
+void sync_time(bool keepSync) { obtain_time(keepSync); }

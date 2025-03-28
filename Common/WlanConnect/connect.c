@@ -23,19 +23,19 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
-#ifdef CONFIG_EXAMPLE_CONNECT_IPV6
+#ifdef CONFIG_WIFI_MUX_CONNECT_IPV6
 #define MAX_IP6_ADDRS_PER_NETIF (5)
 #define NR_OF_IP_ADDRESSES_TO_WAIT_FOR (s_active_interfaces*2)
 
-#if defined(CONFIG_EXAMPLE_CONNECT_IPV6_PREF_LOCAL_LINK)
-#define EXAMPLE_CONNECT_PREFERRED_IPV6_TYPE ESP_IP6_ADDR_IS_LINK_LOCAL
-#elif defined(CONFIG_EXAMPLE_CONNECT_IPV6_PREF_GLOBAL)
-#define EXAMPLE_CONNECT_PREFERRED_IPV6_TYPE ESP_IP6_ADDR_IS_GLOBAL
-#elif defined(CONFIG_EXAMPLE_CONNECT_IPV6_PREF_SITE_LOCAL)
-#define EXAMPLE_CONNECT_PREFERRED_IPV6_TYPE ESP_IP6_ADDR_IS_SITE_LOCAL
-#elif defined(CONFIG_EXAMPLE_CONNECT_IPV6_PREF_UNIQUE_LOCAL)
-#define EXAMPLE_CONNECT_PREFERRED_IPV6_TYPE ESP_IP6_ADDR_IS_UNIQUE_LOCAL
-#endif // if-elif CONFIG_EXAMPLE_CONNECT_IPV6_PREF_...
+#if defined(CONFIG_WIFI_MUX_CONNECT_IPV6_PREF_LOCAL_LINK)
+#define WIFI_MUX_CONNECT_PREFERRED_IPV6_TYPE ESP_IP6_ADDR_IS_LINK_LOCAL
+#elif defined(CONFIG_WIFI_MUX_CONNECT_IPV6_PREF_GLOBAL)
+#define WIFI_MUX_CONNECT_PREFERRED_IPV6_TYPE ESP_IP6_ADDR_IS_GLOBAL
+#elif defined(CONFIG_WIFI_MUX_CONNECT_IPV6_PREF_SITE_LOCAL)
+#define WIFI_MUX_CONNECT_PREFERRED_IPV6_TYPE ESP_IP6_ADDR_IS_SITE_LOCAL
+#elif defined(CONFIG_WIFI_MUX_CONNECT_IPV6_PREF_UNIQUE_LOCAL)
+#define WIFI_MUX_CONNECT_PREFERRED_IPV6_TYPE ESP_IP6_ADDR_IS_UNIQUE_LOCAL
+#endif // if-elif CONFIG_WIFI_MUX_CONNECT_IPV6_PREF_...
 
 #else
 #define NR_OF_IP_ADDRESSES_TO_WAIT_FOR (s_active_interfaces)
@@ -46,7 +46,7 @@ static SemaphoreHandle_t s_semph_get_ip_addrs;
 static esp_ip4_addr_t s_ip_addr;
 static esp_netif_t *s_example_esp_netif = NULL;
 
-#ifdef CONFIG_EXAMPLE_CONNECT_IPV6
+#ifdef CONFIG_WIFI_MUX_CONNECT_IPV6
 static esp_ip6_addr_t s_ipv6_addr;
 
 /* types of ipv6 addresses to be displayed on ipv6 events */
@@ -107,7 +107,7 @@ static void on_got_ip(void *arg, esp_event_base_t event_base,
     xSemaphoreGive(s_semph_get_ip_addrs);
 }
 
-#ifdef CONFIG_EXAMPLE_CONNECT_IPV6
+#ifdef CONFIG_WIFI_MUX_CONNECT_IPV6
 
 static void on_got_ipv6(void *arg, esp_event_base_t event_base,
                         int32_t event_id, void *event_data)
@@ -120,13 +120,13 @@ static void on_got_ipv6(void *arg, esp_event_base_t event_base,
     esp_ip6_addr_type_t ipv6_type = esp_netif_ip6_get_addr_type(&event->ip6_info.ip);
     ESP_LOGI(TAG, "Got IPv6 event: Interface \"%s\" address: " IPV6STR ", type: %s", esp_netif_get_desc(event->esp_netif),
             IPV62STR(event->ip6_info.ip), s_ipv6_addr_types[ipv6_type]);
-    if (ipv6_type == EXAMPLE_CONNECT_PREFERRED_IPV6_TYPE) {
+    if (ipv6_type == WIFI_MUX_CONNECT_PREFERRED_IPV6_TYPE) {
         memcpy(&s_ipv6_addr, &event->ip6_info.ip, sizeof(s_ipv6_addr));
         xSemaphoreGive(s_semph_get_ip_addrs);
     }
 }
 
-#endif // CONFIG_EXAMPLE_CONNECT_IPV6
+#endif // CONFIG_WIFI_MUX_CONNECT_IPV6
 
 esp_err_t my_wifi_connect(void)
 {
@@ -152,7 +152,7 @@ esp_err_t my_wifi_connect(void)
             ESP_ERROR_CHECK(esp_netif_get_ip_info(netif, &ip));
 
             ESP_LOGI(TAG, "- IPv4 address: " IPSTR, IP2STR(&ip.ip));
-#ifdef CONFIG_EXAMPLE_CONNECT_IPV6
+#ifdef CONFIG_WIFI_MUX_CONNECT_IPV6
             esp_ip6_addr_t ip6[MAX_IP6_ADDRS_PER_NETIF];
             int ip6_addrs = esp_netif_get_all_ip6(netif, ip6);
             for (int j=0; j< ip6_addrs; ++j) {
@@ -189,7 +189,7 @@ static void on_wifi_disconnect(void *arg, esp_event_base_t event_base,
     ESP_ERROR_CHECK(err);
 }
 
-#ifdef CONFIG_EXAMPLE_CONNECT_IPV6
+#ifdef CONFIG_WIFI_MUX_CONNECT_IPV6
 
 static void on_wifi_connect(void *esp_netif, esp_event_base_t event_base,
                             int32_t event_id, void *event_data)
@@ -197,7 +197,7 @@ static void on_wifi_connect(void *esp_netif, esp_event_base_t event_base,
     esp_netif_create_ip6_linklocal(esp_netif);
 }
 
-#endif // CONFIG_EXAMPLE_CONNECT_IPV6
+#endif // CONFIG_WIFI_MUX_CONNECT_IPV6
 
 static void set_hostname(esp_netif_t* netif)
 {
@@ -248,7 +248,7 @@ static esp_netif_t* wifi_start(void)
 
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, &on_wifi_disconnect, NULL));
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &on_got_ip, NULL));
-#ifdef CONFIG_EXAMPLE_CONNECT_IPV6
+#ifdef CONFIG_WIFI_MUX_CONNECT_IPV6
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, WIFI_EVENT_STA_CONNECTED, &on_wifi_connect, netif));
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_GOT_IP6, &on_got_ipv6, NULL));
 #endif
@@ -273,7 +273,7 @@ static void wifi_stop(void)
     esp_netif_t *wifi_netif = get_example_netif_from_desc("sta");
     ESP_ERROR_CHECK(esp_event_handler_unregister(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, &on_wifi_disconnect));
     ESP_ERROR_CHECK(esp_event_handler_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, &on_got_ip));
-#ifdef CONFIG_EXAMPLE_CONNECT_IPV6
+#ifdef CONFIG_WIFI_MUX_CONNECT_IPV6
     ESP_ERROR_CHECK(esp_event_handler_unregister(IP_EVENT, IP_EVENT_GOT_IP6, &on_got_ipv6));
     ESP_ERROR_CHECK(esp_event_handler_unregister(WIFI_EVENT, WIFI_EVENT_STA_CONNECTED, &on_wifi_connect));
 #endif

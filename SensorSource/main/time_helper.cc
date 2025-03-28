@@ -1,17 +1,14 @@
-// -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*-                                          
+// -*- c-file-style: "Stroustrup"; eval: (auto-complete-mode) -*-
 #include "time_helper.h"
 #include <cstdint>
 #include <sstream>
 
-
 //------------------------------------------------------------------------------
-timespec timespec_add(const timespec &t1, const timespec &t2)
-{
+timespec timespec_add(const timespec &t1, const timespec &t2) {
     timespec tmp = t1;
     tmp.tv_sec += t2.tv_sec;
     tmp.tv_nsec += t2.tv_nsec;
-    while (tmp.tv_nsec >= 1000000000)
-    {
+    while (tmp.tv_nsec >= 1000000000) {
         tmp.tv_nsec -= 1000000000;
         tmp.tv_sec += 1;
     }
@@ -19,16 +16,12 @@ timespec timespec_add(const timespec &t1, const timespec &t2)
 }
 
 //------------------------------------------------------------------------------
-timespec timespec_sub(const timespec &t1, const timespec &t2)
-{
+timespec timespec_sub(const timespec &t1, const timespec &t2) {
     timespec tmp = t1;
-    if (t2.tv_nsec > t1.tv_nsec)
-    {
+    if (t2.tv_nsec > t1.tv_nsec) {
         tmp.tv_nsec = tmp.tv_nsec - t2.tv_nsec + 1000000000;
         tmp.tv_sec = tmp.tv_sec - t2.tv_sec + 1;
-    }
-    else
-    {
+    } else {
         tmp.tv_nsec = tmp.tv_nsec - t2.tv_nsec;
         tmp.tv_sec = tmp.tv_sec - t2.tv_sec;
     }
@@ -36,8 +29,7 @@ timespec timespec_sub(const timespec &t1, const timespec &t2)
 }
 
 //------------------------------------------------------------------------------
-timespec timespec_mult(const timespec &t, int m)
-{
+timespec timespec_mult(const timespec &t, int m) {
     timespec tmp = t;
     tmp.tv_sec *= m;
     uint64_t nsecs = (tmp.tv_nsec * m) % 1000000000;
@@ -48,14 +40,12 @@ timespec timespec_mult(const timespec &t, int m)
 }
 
 //------------------------------------------------------------------------------
-int timespec_compare(const timespec &t1, const timespec &t2)
-{
+int timespec_compare(const timespec &t1, const timespec &t2) {
     if (t1.tv_sec > t2.tv_sec)
         return 1;
     else if (t1.tv_sec < t2.tv_sec)
         return -1;
-    else
-    {
+    else {
         if (t1.tv_nsec > t2.tv_nsec)
             return 1;
         else if (t1.tv_nsec < t2.tv_nsec)
@@ -66,30 +56,23 @@ int timespec_compare(const timespec &t1, const timespec &t2)
 }
 
 //------------------------------------------------------------------------------
-bool timespec_isNull(const timespec &t)
-{
-    return (t.tv_sec == 0) && (t.tv_nsec == 0);
-}
+bool timespec_isNull(const timespec &t) { return (t.tv_sec == 0) && (t.tv_nsec == 0); }
 
-std::string timespec_to_string(timespec t)
-{
+std::string timespec_to_string(timespec t) {
     std::ostringstream s;
-    if (t.tv_sec >= 86400)
-    {
+    if (t.tv_sec >= 86400) {
         s << t.tv_sec / 86400 << "d";
         t.tv_sec %= 86400;
     }
-    if (t.tv_sec >= 3600)
-    {
+    if (t.tv_sec >= 3600) {
         s << t.tv_sec / 3600 << ":";
         t.tv_sec %= 3600;
     }
-    if (t.tv_sec >= 60)
-    {
+    if (t.tv_sec >= 60) {
         s << t.tv_sec / 60 << ":";
         t.tv_sec %= 60;
     }
     s << t.tv_sec;
-    
+
     return s.str();
 }

@@ -1,4 +1,3 @@
 idf_component_register(SRCS sh1106.cc
                     INCLUDE_DIRS "."
-                    REQUIRES I2cManager
-                    PRIV_REQUIRES driver)
+                    PRIV_REQUIRES  esp_driver_i2c)

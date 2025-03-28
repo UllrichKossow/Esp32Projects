@@ -7,40 +7,32 @@
 
 #include "cJSON.h"
 
-#include "esp_timer.h"
-#include "esp_log.h"
 #include "MqttClient.h"
+#include "esp_log.h"
+#include "esp_timer.h"
 
 static const char *TAG = "TimeSwitch";
 
-TimeSwitch::TimeSwitch()
-    : m_currentState(bulb_unknown), m_table(nullptr)
-{
+TimeSwitch::TimeSwitch() : m_currentState(bulb_unknown), m_table(nullptr) {
     setenv("TZ", "UTC-2", 1);
     tzset();
     readTable("{\"cams\":[{\"time\":\"08:00\",\"state\":\"bulb_6k5\"},{\"time\":\"16:00\",\"state\":\"bulb_off\"}]}");
 }
 
-void TimeSwitch::Switch(bool state)
-{
+void TimeSwitch::Switch(bool state) {
     m_rfSwitch.Switch(state);
     MqttClient::instance()->publish("Schaltuhr/switch", state ? "on" : "off");
 }
 
-bool TimeSwitch::readTable(const char *json)
-{
+bool TimeSwitch::readTable(const char *json) {
     m_table = cJSON_Parse(json);
     cJSON *p = cJSON_GetObjectItem(m_table, "cams");
     return true;
 }
 
-bool TimeSwitch::inRange(tm &t, tm &start, tm &stop)
-{
-    return (mktime(&t) >= mktime(&start)) && (mktime(&t) < mktime(&stop));
-}
+bool TimeSwitch::inRange(tm &t, tm &start, tm &stop) { return (mktime(&t) >= mktime(&start)) && (mktime(&t) < mktime(&stop)); }
 
-void TimeSwitch::ProcessProgramm()
-{
+void TimeSwitch::ProcessProgramm() {
     time_t now;
     tm timeinfo;
 
@@ -66,29 +58,19 @@ void TimeSwitch::ProcessProgramm()
 
 #pragma GCC diagnostic pop
     bulb_state_t calculated_state = bulb_off;
-    if (inRange(timeinfo, t8, t9))
-    {
+    if (inRange(timeinfo, t8, t9)) {
         calculated_state = bulb_on_6k5;
-    }
-    else if (inRange(timeinfo, t9, t10))
-    {
+    } else if (inRange(timeinfo, t9, t10)) {
         calculated_state = bulb_on_4k0;
-    }
-    else if (inRange(timeinfo, t10, t18))
-    {
+    } else if (inRange(timeinfo, t10, t18)) {
         calculated_state = bulb_on_2k7;
-    }
-    else if (inRange(timeinfo, t18, t19))
-    {
+    } else if (inRange(timeinfo, t18, t19)) {
         calculated_state = bulb_on_4k0;
-    }
-    else if (inRange(timeinfo, t19, t20))
-    {
+    } else if (inRange(timeinfo, t19, t20)) {
         calculated_state = bulb_on_6k5;
     }
 
-    if (calculated_state != m_currentState)
-    {
+    if (calculated_state != m_currentState) {
         ESP_LOGI(TAG, "%02i:%02i:%02i", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
         char text[80];
         strftime(text, 80, "%T", &timeinfo);
@@ -96,15 +78,13 @@ void TimeSwitch::ProcessProgramm()
         m_currentState = calculated_state;
         const int t_reset = 10000;
         const int t_pulse = 500;
-        switch (m_currentState)
-        {
+        switch (m_currentState) {
         case bulb_off:
             Switch(false);
             MqttClient::instance()->publish("Schaltuhr/state", "bulb_off", true);
             break;
 
-        case bulb_on_6k5:
-        {
+        case bulb_on_6k5: {
             Switch(false);
             vTaskDelay(t_reset / portTICK_PERIOD_MS);
 
@@ -121,8 +101,7 @@ void TimeSwitch::ProcessProgramm()
             break;
         }
 
-        case bulb_on_4k0:
-        {
+        case bulb_on_4k0: {
             Switch(false);
             vTaskDelay(t_reset / portTICK_PERIOD_MS);
 
@@ -135,8 +114,7 @@ void TimeSwitch::ProcessProgramm()
             break;
         }
 
-        case bulb_on_2k7:
-        {
+        case bulb_on_2k7: {
             Switch(false);
             vTaskDelay(t_reset / portTICK_PERIOD_MS);
             Switch(true);
@@ -144,7 +122,7 @@ void TimeSwitch::ProcessProgramm()
             break;
         }
         case bulb_unknown: // ignore
-            break; 
+            break;
         }
     }
 }

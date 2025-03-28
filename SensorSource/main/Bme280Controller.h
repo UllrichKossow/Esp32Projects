@@ -5,10 +5,10 @@
 #include <string>
 #include <vector>
 #include <mutex>
-
+#include "Bme280Adapter.h"
 #include "esp_timer.h"
 
-#include "bme280.h"
+
 
 struct measure_t
 {
@@ -45,16 +45,15 @@ private:
     uint32_t m_currentInterval;
     uint32_t m_maxSize;
 
-    struct bme280_dev m_dev;
     uint32_t m_req_delay;
     std::vector<measure_t> m_measures;
     std::mutex m_measureLock;
 
 private:
-    void addMeasure(const bme280_data &data);
+    void addMeasure(const Bme280Adapter::data_t &data);
     std::string formatedNumber(double n, int precision);
-    void publish(const bme280_data &data);
-    std::string showData(const bme280_data &data);
+    void publish(const Bme280Adapter::data_t &data);
+    std::string showData(const Bme280Adapter::data_t &data);
     void checkCapacity();
 };
 

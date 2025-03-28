@@ -16,7 +16,7 @@ extern "C" {
 #include "esp_err.h"
 #include "esp_netif.h"
 
-#ifdef CONFIG_EXAMPLE_CONNECT_WIFI
+#ifdef CONFIG_WIFI_MUX_CONNECT_WIFI
 #define EXAMPLE_INTERFACE get_example_netif()
 #endif
 

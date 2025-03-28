@@ -1,5 +1,5 @@
 idf_component_register(SRCS app_main.cc Bme280Controller.cc time_helper.cc
     INCLUDE_DIRS "."
-	REQUIRES MqttClient I2cManager SH1106 newBME280 SetSystemTime json mqtt)
+	REQUIRES MqttClient SH1106 Bme280Adapter SetSystemTime json mqtt esp_pm)
 
-add_definitions(-DBME280_32BIT_ENABLE)
+
