@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../Common/Bme280Adapter"
+		},
+		{
+			"path": "../../Common/SH1106"
+		},
+		{
+			"path": "../../Common/WlanConnect"
+		},
+		{
+			"path": "../../Common/MqttClient"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"functional": "cpp"
+		}
+	}
+}

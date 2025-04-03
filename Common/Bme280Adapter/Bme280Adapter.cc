@@ -86,9 +86,9 @@ bool Bme280Adapter::read(data_t &data) {
     settings.filter = BME280_FILTER_COEFF_2;
 
     /* Over-sampling rate for humidity, temperature and pressure */
-    settings.osr_h = BME280_OVERSAMPLING_1X;
-    settings.osr_p = BME280_OVERSAMPLING_1X;
-    settings.osr_t = BME280_OVERSAMPLING_1X;
+    settings.osr_h = BME280_OVERSAMPLING_4X;
+    settings.osr_p = BME280_OVERSAMPLING_4X;
+    settings.osr_t = BME280_OVERSAMPLING_4X;
 
     /* Setting the standby time */
     // settings.standby_time = BME280_STANDBY_TIME_0_5_MS;

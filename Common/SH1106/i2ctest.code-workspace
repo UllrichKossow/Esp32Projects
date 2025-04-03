@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../i2ctest"
+		},
+		{
+			"path": "../Bme280Adapter"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {}
+}
